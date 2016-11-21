@@ -37,7 +37,7 @@ static const char *CLIENT_MSG[] = {
     "VERSION", "ID", "PLAYER", "OKWAIT","THINKING","PLAY"
 };
 
-void performConnection(int *fd);
+void performConnection(int fd);
 
 void handle(char *server_reply);
 

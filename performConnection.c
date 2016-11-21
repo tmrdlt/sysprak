@@ -4,20 +4,19 @@
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int *fd){
+void performConnection(int fd){
     //Placeholder
-    int socket;
     //Buffer for reading/writing
     char  server_reply[2000];
 
-    if( send(socket, CLIENT_MSG[PLAYER], strlen(CLIENT_MSG[PLAYER]),0) < 0){
+    if( send(fd, CLIENT_MSG[PLAYER], strlen(CLIENT_MSG[PLAYER]),0) < 0){
         perror("Player init failed");
         
         return;
     }
     
     while(1){
-        if(recv(socket , server_reply , 2000 , 0) < 0){
+        if(recv(fd , server_reply , 2000 , 0) < 0){
             perror("Receiving Message failed");
             break;
         }else if (server_reply[0] == '-'){
@@ -51,8 +50,10 @@ void handle(char *server_reply){
         
         free(p);
     }else if(strstr(splited_reply[1], "TOTAL")) {
+        char *end;
+        long tmp = strtol(splited_reply[2], &end, 13);
         
-        int players_in_game = (int)splited_reply[2];
+        int players_in_game = (int)tmp;
         
         if(players_in_game != 1){
             printf("In dem von dir gewählten Spiel befinden sich bereits %i Spieler" , players_in_game);
