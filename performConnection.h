@@ -39,4 +39,8 @@ static const char *CLIENT_MSG[] = {
 
 void performConnection(int *fd);
 
+void handle(char *server_reply);
+
+int split(char *string_to_split , char delimiter , char ***dest);
+
 #endif /* performConnection_h */
