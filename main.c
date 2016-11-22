@@ -1,12 +1,17 @@
+#define _POSIX_C_SOURCE 2
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "performConnection.h"
 
 
 void printHelp() {
         printf("How to use:\n");
         printf("Please add -g <gameid>\n");
 }
+
+
 int main(int argc, char *argv[]) {
 
         int gameid = 0;
@@ -24,17 +29,18 @@ int main(int argc, char *argv[]) {
                         break;
                 }
         }
+
         if (gameid == 0) {
                 printHelp();
                 return EXIT_FAILURE;
         }
 
-
-
-
         printf("GameID: %d\n", gameid);
 
+        //performConnection();
+
         // insert code here...
+
         printf("...for testing purposes\n");
         //testing
 
