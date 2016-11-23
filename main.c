@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "performConnection.h"
+#include "connect_to_server.h"
 
 
 void printHelp() {
@@ -12,7 +13,7 @@ void printHelp() {
 }
 
 
-int main(int argc, char *argv[]) {
+int mainb(int argc, char *argv[]) {
 
         int gameid = 0;
 
@@ -43,6 +44,8 @@ int main(int argc, char *argv[]) {
 
         printf("...for testing purposes\n");
         //testing
-
+    
+        int fd = connect_to_server();
+        performConnection(fd);
         return EXIT_SUCCESS;
 }

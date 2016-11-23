@@ -4,9 +4,13 @@
 #include<netdb.h>
 #include<stdio.h>
 #include<unistd.h>
-#define sysprak.priv.lab.nm.ifi.lmu.de HOSTNAME
-#define 1357 PORTNUMBER
-int main (int argc, char **argv)
+#include "connect_to_server.h"
+
+#define  HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de"
+#define  PORTNUMBER 1357
+
+
+int connect_to_server ()
 {
 	int create_socket;
 	struct sockaddr_in address;
@@ -21,9 +25,9 @@ int main (int argc, char **argv)
 	//Vorbereiten von Socket
 	host = gethostbyname ( HOSTNAME );
 	ip_host = (struct in_addr **) host -> h_addr_list;
-	address.sin_family = AF_NET;
+	address.sin_family = AF_INET;
 	address.sin_port = htons ( PORTNUMBER );
-	address.sin_addr = ip_host;
+	address.sin_addr = **ip_host;
 	
 	//Verbinden mit Server
 	if((connect (create_socket, (struct sockaddr *)&address, sizeof(address))) == 0){
@@ -32,7 +36,6 @@ int main (int argc, char **argv)
 	 
 		 
 	 //EXIT
-	 close (create_socket);
-		
+    return create_socket;
 	
 }
