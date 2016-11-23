@@ -11,8 +11,8 @@ connect_to_server.o: connect_to_server.c connect_to_server.h
 performConnection.o: performConnection.c performConnection.h
 		$(CC) $(CFLAGS) -c performConnection.c
 
-main: performConnection.o main.c bashni_structs.h
+main: performConnection.o connect_to_server.o main.c bashni_structs.h
 		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ performConnection.o connect_to_server.o main.c $(LDLIBS)
 
 clean:
-	rm -f performConnection.o main
+	rm -f performConnection.o connect_to_server.o main
