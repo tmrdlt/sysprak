@@ -5,7 +5,9 @@
 bool quit = false;
 
 player *_player;
-phase *_phase = PROLOG;
+player *opponent_players;
+segment *gameparams;
+phase _phase = PROLOG;
 int _gameId;
 
 
@@ -41,6 +43,8 @@ void performConnection(int fd){
     }
     close(fd);
     free(_player);
+    free(opponent_players);
+    free(gameparams);
     // TODO clean Memory here
 //     TODO check if Messsage contains \n ...
 }
@@ -57,44 +61,8 @@ void handle(char *server_reply, int fd){
     char **splited_reply;
     int count_elements = split(server_reply, ' ', &splited_reply);
     
-    // Player id- name allocation
-    if(strcmp(splited_reply[1], "YOU")) {
-        if(_player == NULL){
-            char *end;
-        
-            long l = strtol(splited_reply[2], &end, 13);
-       
-            _player= (player*) malloc(sizeof(player*));
-            _player->id = (int)l;
-            _player->name = splited_reply[3];
-            printf("Your Player id is: %i and your name: %s" ,_player->id, _player->name);
-        } else{
-            perror("Böser Server ... Player wurde bereits gestezt");
-            quit = true;
-        }
-        
-    // Count Players in Game
-    }else if(strcmp(splited_reply[1], "TOTAL")) {
-        char *end;
-        long tmp = strtol(splited_reply[2], &end, 13);
-        
-        int players_in_game = (int)tmp;
-        //TODO: set num players in gameparams
-        
-        if(players_in_game != 1){
-            printf("In dem von dir gewählten Spiel befinden sich bereits %i Spieler" , players_in_game);
-        }else{
-            printf("In dem von dir gewählten Spiel befindet sich bereits %i Spieler" , players_in_game);
-        }
-    
-        // Server allows entering Game
-    }else if(strcmp(splited_reply[1], "PLAYING")) {
-    
-        //TODO Start Game
-            //printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
-    
-        // Servers Gameversion
-    }else if(strcmp(splited_reply[1], "MNM")) {
+     // Servers Gameversion
+    if(strcmp(splited_reply[1], "MNM")) {
         if(_phase != PROLOG){
             printf("Protokollverletzung durch Gameserver Client befindet sich nicht mehr im Prolog");
         }
@@ -106,15 +74,68 @@ void handle(char *server_reply, int fd){
             quit = true;
         }
     
-        // All Players in Game transfered to Client
+    // Server allows entering Game
+    }else if(strcmp(splited_reply[1], "PLAYING")) {
+        
+        //TODO Start Game
+        //printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
+        
+    
+    // Player id- name allocation
+     }else if(strcmp(splited_reply[1], "YOU")) {
+        if(_player == NULL && _phase == PROLOG){
+            char *end;
+        
+            long l = strtol(splited_reply[2], &end, 13);
+       
+            _player= (player*) malloc(sizeof(player*));
+            _player->number = (int)l;
+            _player->player_name = splited_reply[3];
+                      printf("Your Player id is: %i and your name: %s" ,_player->number, _player->player_name);
+        } else{
+            perror("Böser Server ... Player wurde bereits gestezt");
+            quit = true;
+        }
+        
+    // Count Players in Game
+    }else if(strcmp(splited_reply[1], "TOTAL")) {
+        if(_phase == PROLOG){
+            char *end;
+            long tmp = strtol(splited_reply[2], &end, 13);
+        
+            int players_in_game = (int)tmp;
+            //set num players in gameparams
+            opponent_players = (player*)malloc(sizeof(player)*players_in_game);
+        
+            if(players_in_game != 1){
+                printf("In dem von dir gewählten Spiel befinden sich bereits %i Spieler" , players_in_game);
+            }else{
+                printf("In dem von dir gewählten Spiel befindet sich bereits %i Spieler" , players_in_game);
+            }
+        } else{
+            perror("Client befindet sich nicht mehr in der Prolog-phase");
+            quit = true;
+        }
+    
+            // All Players in Game transfered to Client
     }else if(strcmp(splited_reply[1], "ENDPLAYERS")) {
         // Todo set Flag in Gameparams
-        printf("Alle Gegenspieler eingelesen");
+        if(_phase == PROLOG){
+             printf("Alle Gegenspieler eingelesen -> nächste Phase");
+            _phase = COURSE;
+        } else{
+            perror("Client befindet sich nicht mehr in der Prolog-phase: Einlesen konnte nicht abgeschlossen werden");
+            quit = true;
+        }
         
         // Client Waits for Server
     }else if(strcmp(splited_reply[1], "WAIT")) {
-        //TODO what ever
+        
         printf("Warte auf Gameserver");
+        if( send(fd, "OKWAIT", strlen("OKWAIT\0"),0) < 0){
+            perror("Quittung für Wait konnte nicht gesendet werden!");
+            quit = true;
+        }
         
         //Server allows Client to make next Move
     }else if(strcmp(splited_reply[1], "MOVE")) {
@@ -170,16 +191,29 @@ void handle(char *server_reply, int fd){
         
         //new opponent player
     }else if(count_elements == 4){
-            printf("Spieler mit Nr: %s und Name: %s ist bereit: %s" , splited_reply[1], splited_reply[2], splited_reply[3]);
-            //TODO set in Gameparams
+        printf("Spieler mit Nr: %s und Name: %s ist bereit: %s" , splited_reply[1], splited_reply[2], splited_reply[3]);
         
+        char *end;
+        long tmp = strtol(splited_reply[1], &end, 13);
+        
+        int p_nr = (int)tmp;
+        player *p = (player*) malloc(sizeof(player));
+        p->number = p_nr;
+        p->player_name = splited_reply[2];
+        tmp = strtol(splited_reply[3], &end, 13);
+        int p_flag = (int)tmp;
+        p->flag = p_flag;
+        
+        
+        opponent_players[gameparams->player_count-1] = *p;
+        gameparams->player_count=gameparams->player_count+1;
         // Name des Spiels
     }else if (count_elements == 2){
            
         printf("Bot betritt das Spiel: %s!" , splited_reply[2]);
         
         //sende gewünschte Spielernummer (noch leer)
-        char *message = "Player [[]]";
+        char *message = "Player";
         if( send(fd, message, strlen(message),0) < 0){
             perror("Initialisierung Spieler fehlgeschlagen");
             quit = true;
