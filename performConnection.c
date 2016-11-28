@@ -50,12 +50,14 @@ void performConnection(int fd){
  *
  */
 void handle(char *server_reply, int fd){
-   // char message[1000];
-    printf("Received Message: %s \n" , server_reply);
-    char **splited_reply;
    
+    printf("Received Message: %s \n" , server_reply);
+    
+    // Split Message in Array of words (for parsing)
+    char **splited_reply;
     int count_elements = split(server_reply, ' ', &splited_reply);
     
+    // Player id- name allocation
     if(strcmp(splited_reply[1], "YOU")) {
         if(_player == NULL){
             char *end;
@@ -71,83 +73,117 @@ void handle(char *server_reply, int fd){
             quit = true;
         }
         
-       
+    // Count Players in Game
     }else if(strcmp(splited_reply[1], "TOTAL")) {
         char *end;
         long tmp = strtol(splited_reply[2], &end, 13);
         
         int players_in_game = (int)tmp;
+        //TODO: set num players in gameparams
         
         if(players_in_game != 1){
             printf("In dem von dir gewählten Spiel befinden sich bereits %i Spieler" , players_in_game);
         }else{
             printf("In dem von dir gewählten Spiel befindet sich bereits %i Spieler" , players_in_game);
         }
-        
+    
+        // Server allows entering Game
     }else if(strcmp(splited_reply[1], "PLAYING")) {
     
-        printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
+        //TODO Start Game
+            //printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
     
+        // Servers Gameversion
     }else if(strcmp(splited_reply[1], "MNM")) {
         if(_phase != PROLOG){
             printf("Protokollverletzung durch Gameserver Client befindet sich nicht mehr im Prolog");
         }
         printf("Versions Nummer des MNM Webservers: %s" , splited_reply[3]);
-        
+        //TODO Check if fitting Versions
+        // send Clients version
         if( send(fd, "VERSION", strlen("VERSION\0"),0) < 0){
             perror("Version des Clienten konnte nicht gesendet werden!");
             quit = true;
         }
     
+        // All Players in Game transfered to Client
     }else if(strcmp(splited_reply[1], "ENDPLAYERS")) {
-        
+        // Todo set Flag in Gameparams
         printf("Alle Gegenspieler eingelesen");
         
+        // Client Waits for Server
     }else if(strcmp(splited_reply[1], "WAIT")) {
-        
+        //TODO what ever
         printf("Warte auf Gameserver");
         
+        //Server allows Client to make next Move
     }else if(strcmp(splited_reply[1], "MOVE")) {
+        // TODO
          printf("Du bist am Zug und hast %s sekunden" ,splited_reply[2]);
         
+        //Changed Gamestate - Server sends changed pieces
     }else if(strcmp(splited_reply[1], "PIECESLIST")) {
+        //TODO Flag
          printf("Steine setzen");
     
+        //Move Brick
+        //TODO strcmp -> zu contains
     }else if(strcmp(splited_reply[1], "@")) {
         printf("Stein auf %s setzen", splited_reply[1]);
+        //TODO change gameState
     
+        //Server erlaubt berechnung des nächsten Zuges
     }else if(strcmp(splited_reply[1], "OKTHINKING")) {
+        // thinking();
         printf("Berechne deinen Zug");
         
+        //Game over
     }else if(strcmp(splited_reply[1], "GAMEOVER")) {
         printf("das Spiel ist vorbei");
+        quit = true;
+        
+        //Changed Game Pieces transfered
     }else if(strcmp(splited_reply[1], "ENDPIECESLIST")) {
+        //TODO Flag setzen
         printf("Alle Steine gelesen und gesetzt");
+        
+        //Gewinner Spiel
     }else if(strcmp(splited_reply[1], "PLAYER0WON")) {
+        
         if (strcmp(splited_reply[2], "Yes")){
             printf("Player 0 gewinnt");
         } else{
             printf("Player 0 verliert");
         }
         
+         //Gewinner Spiel
     }else if(strcmp(splited_reply[1], "PLAYER1WON")) {
         if (strcmp(splited_reply[2], "Yes")){
             printf("Player 1 gewinnt");
         } else{
             printf("Player 1 verliert");
         }
+        //Quit Client and connection
     }else if(strcmp(splited_reply[1], "QUIT")) {
         printf("Beende deinen Clienten ");
+        quit = true;
+        
         //new opponent player
     }else if(count_elements == 4){
             printf("Spieler mit Nr: %s und Name: %s ist bereit: %s" , splited_reply[1], splited_reply[2], splited_reply[3]);
+            //TODO set in Gameparams
         
         // Name des Spiels
     }else if (count_elements == 2){
            
-            printf("Bot betritt das Spiel: %s!" , splited_reply[2]);
-            //sende gewünschte Spielernummer (noch leer)
-            //char *message = "Player [[]]";
+        printf("Bot betritt das Spiel: %s!" , splited_reply[2]);
+        
+        //sende gewünschte Spielernummer (noch leer)
+        char *message = "Player [[]]";
+        if( send(fd, message, strlen(message),0) < 0){
+            perror("Initialisierung Spieler fehlgeschlagen");
+            quit = true;
+        }
         
         // Client Version wurde akzeptiert
     } else if (strcmp(server_reply, "Client version accepted")){
@@ -163,13 +199,14 @@ void handle(char *server_reply, int fd){
                 perror("Fehler bei der Übertragung der Game Id!");
                 quit = true;
             }
-            
+        // Nicht erkannte Nachricht - fehler
     }else{
-            printf("Nachricht konnte nicht erkannt werden:\n %s", server_reply);
-            quit = true;
+        printf("Nachricht konnte nicht erkannt werden:\n %s", server_reply);
+        quit = true;
     }
     
     printf("\n");
+    // Frei geben des tmp allozierten Speicherplatz für die aufgespaltene Nachricht
    free(splited_reply);
 }
 
@@ -247,7 +284,13 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
     return count;
 }
 
-int main(int argc, const char * argv[]) {
+
+//int send_to_gameserver(int fd, char *message){
+//    return (int)send(fd, message, strlen(message), 0);
+//}
+
+
+/*int main(int argc, const char * argv[]) {
     // insert code here...
     
     printf("Hello World\n");
@@ -282,4 +325,4 @@ int main(int argc, const char * argv[]) {
     
     return 0;
 } 
-
+*/

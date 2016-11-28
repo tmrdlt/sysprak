@@ -32,4 +32,6 @@ void handle(char *server_reply, int fd);
 
 int split(char *string_to_split , char delimiter , char ***dest);
 
+//int send_to_gameserver(int fd, char *message);
+
 #endif /* performConnection_h */
