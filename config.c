@@ -13,7 +13,7 @@ void openconfig(char *filename) {
         }else {
                 fscanf(file, "%s %d %s", config.hostname, &config.portnumber, config.gamekindname);
 
-                printf("host: %s\nport: %d\nkind: %s\n", config.hostname, config.portnumber, config.gamekindname);
+            //  test:  printf("host: %s\nport: %d\nkind: %s\n", config.hostname, config.portnumber, config.gamekindname);
                 fclose(file);
         }
 
