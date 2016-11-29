@@ -1,13 +1,13 @@
-//
-//  connect_to_server.h
-//  bashni
-//
-//  Created by Holzner on 23.11.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
-
 #ifndef connect_to_server_h
 #define connect_to_server_h
+
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<netdb.h>
+#include<stdio.h>
+#include<unistd.h>
+#include "config.h"
 
 int connect_to_server ();
 

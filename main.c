@@ -1,3 +1,4 @@
+
 #define _POSIX_C_SOURCE 2
 #include <math.h>
 #include <stdio.h>
@@ -5,52 +6,82 @@
 #include <unistd.h>
 #include "performConnection.h"
 #include "connect_to_server.h"
+#include "config.h"
 
-// Stellen einer Long Zahl bestimmen
-int countdigits(long num){
-        return (int) log10(num) + 1;
 
-}
+
 // Bedienungshinweise
 void printHelp() {
         printf("How to use:\n");
         printf("Please add -g <gameid>\n");
         printf("the GameID has to be 13 digits\n");
+        printf("Optional: add -f <filename> to specify the config file\n");
 }
+char *game_id;
+char *filename;
+char standard_filename[] = "client.conf";
 
 int main(int argc, char *argv[]) {
 
-        unsigned long gameid = 0;
+        pid_t pid;
+
 
         // GameID mit -g Flag einlesen
         int ret;
-        while ((ret = getopt(argc, argv, "g:")) != -1) {
-              switch (ret) {
+        while ((ret = getopt(argc, argv, "g:f::")) != -1) {
+                switch (ret) {
                 case 'g':
-                        gameid = atol(optarg);
+                        game_id = optarg;
                         break;
+
+                case 'f':
+                        filename = optarg;
+                        break;
+
                 default:
                         printHelp();
                         return EXIT_FAILURE;
-                        break;
                 }
+
         }
 
         // hat die GameId wirklich 13 Stellen?
-        if (countdigits(gameid) != 13) {
+        if (strlen(game_id) != 13) {
                 printHelp();
                 return EXIT_FAILURE;
         }
 
-        printf("GameID: %ld\n", gameid);
+        // wenn kein -f Flag, dann nehme standard_filename
+        if (argc < 4) {
+                filename = standard_filename;
+        }
 
-        // insert code here...
 
-        printf("...for testing purposes\n");
+        printf("GameID: %s\n", game_id);
 
-        //testing
+        // öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
+        openconfig(filename);
 
         int fd = connect_to_server();
-        performConnection(fd);
+        if(fd == -1)
+                return EXIT_FAILURE;
+        performConnection(fd, game_id);
+
+
+        switch (pid = fork()) {
+        case -1:
+                printf ("Fehler bei fork()\n");
+                break;
+        case 0:
+                printf("Hi hier ist der Connector (Kindprozess)\n");
+                break;
+        default:
+                printf("Hi hier ist der Thinker (Elternprozess)\n");
+                break;
+        }
+
+
         return EXIT_SUCCESS;
+
+
 }
