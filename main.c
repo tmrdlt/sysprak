@@ -5,12 +5,9 @@
 #include <unistd.h>
 #include "performConnection.h"
 #include "connect_to_server.h"
+#include "definitions.h"
 
-// Stellen einer Long Zahl bestimmen
-int countdigits(long num){
-        return (int) log10(num) + 1;
 
-}
 // Bedienungshinweise
 void printHelp() {
         printf("How to use:\n");
@@ -20,14 +17,16 @@ void printHelp() {
 
 int main(int argc, char *argv[]) {
 
-        unsigned long gameid = 0;
+char *filename;
+
+
 
         // GameID mit -g Flag einlesen
         int ret;
         while ((ret = getopt(argc, argv, "g:")) != -1) {
-              switch (ret) {
+                switch (ret) {
                 case 'g':
-                        gameid = atol(optarg);
+                        GAME_ID = (optarg);
                         break;
                 default:
                         printHelp();
@@ -36,13 +35,15 @@ int main(int argc, char *argv[]) {
                 }
         }
 
+
         // hat die GameId wirklich 13 Stellen?
-        if (countdigits(gameid) != 13) {
+        if (strlen(GAME_ID) != 13) {
                 printHelp();
                 return EXIT_FAILURE;
         }
 
-        printf("GameID: %ld\n", gameid);
+
+        printf("GameID: %s\n", GAME_ID);
 
         // insert code here...
 
@@ -52,5 +53,24 @@ int main(int argc, char *argv[]) {
 
         int fd = connect_to_server();
         performConnection(fd);
+
+
+        pid_t pid;
+        switch (pid = fork()) {
+        case -1:
+                printf ("Fehler bei fork()\n");
+                break;
+        case 0:
+                printf("Hi hier ist der Connector (Kindprozess)\n");
+        default:
+                printf("Hi hier ist der Thinker (Elternprozess)\n");
+        }
+
+
+
+
+
         return EXIT_SUCCESS;
+
+
 }

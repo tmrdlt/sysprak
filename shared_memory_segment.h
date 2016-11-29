@@ -11,21 +11,7 @@
 
 
 
-typedef struct{
-    char *player_name;
-    int number;
-    int flag;
-} player;
 
-
-typedef struct {
-    char *game_name;
-    int *player_number;
-    int player_count;
-
-    pid_t process_id_thinker;
-    pid_t process_id_connector;
-}segment;
 
 void shared_memory_segment ();
 

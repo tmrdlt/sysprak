@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include "shared_memory_segment.h"
+#include "definitions.h"
 
 
 typedef enum {
