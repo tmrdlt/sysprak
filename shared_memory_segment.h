@@ -13,6 +13,6 @@
 
 
 
-void shared_memory_segment ();
+void thinker_process();
 
 #endif /* shared_memory_segment_h */
