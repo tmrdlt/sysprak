@@ -5,7 +5,7 @@
 #include<stdio.h>
 #include<unistd.h>
 #include "connect_to_server.h"
-#include "definitions.h"
+#include "config.h"
 
 
 int connect_to_server ()
@@ -37,11 +37,6 @@ int connect_to_server ()
     }
     printf ("Verbindung mit dem Server hergestellt \n");
 	 
-	 
-		 
-	if((connect (create_socket, (struct sockaddr *)&address, sizeof(address))) == 0){
-	 	printf ("Verbindung mit dem Server hergestellt \n");
-	 }
 
 	 //EXIT
     return create_socket;

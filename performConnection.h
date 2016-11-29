@@ -15,7 +15,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include "definitions.h"
+#include "config.h"
+
+typedef struct{
+    char *player_name;
+    int number;
+    int flag;
+} player;
+
+
+typedef struct {
+    char *game_name;
+    int *player_number;
+    int player_count;
+    
+    pid_t process_id_thinker;
+    pid_t process_id_connector;
+}game;
 
 
 
@@ -25,7 +41,7 @@ typedef enum {
     DRAFT
 }phase;
 
-void performConnection(int fd);
+void performConnection(int fd, char *game_id);
 
 void handle(char *server_reply, int fd);
 

@@ -10,17 +10,18 @@ player *opponent_players;
 game *gameparams;
 phase _phase = PROLOG;
 
+char *_game_id;
 
 char *version = "2.1";
 
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int fd){
+void performConnection(int fd, char *game_id){
     //Placeholder
     //Buffer for reading/writing
     char  server_reply[2000];
-
+    _game_id = game_id;
     while(1){
 
 
@@ -30,8 +31,8 @@ void performConnection(int fd){
 
 
         }else if (server_reply[0] == '-'){
-            perror("Fehler auf dem Gameserver ... Verbindung trennen! \n");
-            printf(" %s \n", server_reply);
+            printf("Fehler auf dem Gameserver ... Verbindung trennen! \n");
+            //printf(" %s \n", server_reply);
             break;
         }
 
@@ -57,7 +58,7 @@ void performConnection(int fd){
  */
 void handle(char *server_reply, int fd){
 
-    printf("Received Message: %s \n" , server_reply);
+    //printf("Received Message: %s \n" , server_reply);
 
     // Split Message in Array of words (for parsing)
     char **splited_reply;
@@ -245,7 +246,7 @@ void handle(char *server_reply, int fd){
             // Sende die Game-ID zum Server
             char id_msg[16]= "ID ";
             char id_game[13];
-            sprintf(id_game, "%s", GAME_ID);
+            sprintf(id_game, "%s", _game_id);
             strcat(id_msg, id_game);
             
             if( send_to_gameserver(fd, id_msg) < 0){
