@@ -5,17 +5,20 @@ LDLIBS = -lm
 
 all: performConnection.o connect_to_server.o shared_memory_segment.o game
 
-connect_to_server.o: connect_to_server.c connect_to_server.h
+connect_to_server.o: connect_to_server.c connect_to_server.h config.h
 		$(CC) $(CFLAGS) -c connect_to_server.c
 
-performConnection.o: performConnection.c performConnection.h
+performConnection.o: performConnection.c performConnection.h config.h
 		$(CC) $(CFLAGS) -c performConnection.c
 
 shared_memory_segment.o: shared_memory_segment.c shared_memory_segment.h
 		$(CC) $(CFLAGS) -c shared_memory_segment.c
 
-game: performConnection.o connect_to_server.o shared_memory_segment.o main.c
-		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ performConnection.o connect_to_server.o main.c $(LDLIBS)
+config.o: config.c config.h
+		$(CC) $(CFLAGS) -c config.c
+
+game: performConnection.o connect_to_server.o shared_memory_segment.o config.o main.c
+		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ performConnection.o connect_to_server.o config.o main.c $(LDLIBS)
 
 clean:
-	rm -f performConnection.o connect_to_server.o shared_memory_segment.o game
+	rm -f performConnection.o connect_to_server.o shared_memory_segment.o config.o game

@@ -1,11 +1,5 @@
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<netdb.h>
-#include<stdio.h>
-#include<unistd.h>
+
 #include "connect_to_server.h"
-#include "config.h"
 
 
 int connect_to_server ()
@@ -22,12 +16,12 @@ int connect_to_server ()
 	}
 
     printf ("Socket wurde angelegt \n");
-	
+
 	//Vorbereiten von Socket
-	host = gethostbyname ( HOSTNAME );
+	host = gethostbyname (config.hostname);
 	ip_host = (struct in_addr **) host -> h_addr_list;
 	address.sin_family = AF_INET;
-	address.sin_port = htons ( PORTNUMBER );
+	address.sin_port = htons (config.portnumber);
 	address.sin_addr = **ip_host;
 
 	//Verbinden mit Server
@@ -36,7 +30,7 @@ int connect_to_server ()
         return -1;
     }
     printf ("Verbindung mit dem Server hergestellt \n");
-	 
+
 
 	 //EXIT
     return create_socket;

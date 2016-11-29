@@ -76,17 +76,17 @@ void handle(char *server_reply, int fd){
         sscanf(splited_reply[3], "%lf", &version_server);
         double version_client;
         sscanf(version, "%lf" , &version_client);
-        
+
         if((int)version_server != (int) version_client){
             quit = true;
             printf("\n Version des Clienten: %s ist nicht mit der des Servers: v%s kompatibel!",version ,  splited_reply[3] );
             return;
         }
-        
+
         // send Clients version
         char msg[13] = "VERSION ";
         strcat(msg, version);
-        
+
         if( send_to_gameserver(fd, msg) < 0){
             printf("Version des Clienten konnte nicht gesendet werden!");
             quit = true;
@@ -95,7 +95,7 @@ void handle(char *server_reply, int fd){
     // Server allows entering Game
 
     }else if(strstr(splited_reply[1], "PLAYING")) {
-        
+
         //TODO Start Game
         //printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
 
@@ -188,7 +188,7 @@ void handle(char *server_reply, int fd){
         printf("Alle Steine gelesen und gesetzt");
 
         //Gewinner Spiel
-            
+
     }else if(strcmp(splited_reply[1], "PLAYER0WON")) {
 
         if (strcmp(splited_reply[2], "Yes")){
@@ -241,14 +241,14 @@ void handle(char *server_reply, int fd){
 
         // Client Version wurde akzeptiert
     } else if (strstr(server_reply, "Client version accepted")){
-        
+
             printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!");
             // Sende die Game-ID zum Server
             char id_msg[16]= "ID ";
             char id_game[13];
             sprintf(id_game, "%s", _game_id);
             strcat(id_msg, id_game);
-            
+
             if( send_to_gameserver(fd, id_msg) < 0){
                 perror("Fehler bei der Übertragung der Game Id!");
                 quit = true;
