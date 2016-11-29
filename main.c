@@ -51,6 +51,8 @@ int main(int argc, char *argv[]) {
         //testing
 
         int fd = connect_to_server();
+        if(fd == -1)
+            return EXIT_FAILURE;
         performConnection(fd);
         return EXIT_SUCCESS;
 }

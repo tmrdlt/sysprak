@@ -10,6 +10,7 @@ segment *gameparams;
 phase _phase = PROLOG;
 int _gameId;
 
+char *version = "2.1";
 
 /*
  * performConnection holds client connection to Gameserver.
@@ -62,27 +63,42 @@ void handle(char *server_reply, int fd){
     int count_elements = split(server_reply, ' ', &splited_reply);
     
      // Servers Gameversion
-    if(strcmp(splited_reply[1], "MNM")) {
+    if(strstr(splited_reply[1], "MNM")) {
         if(_phase != PROLOG){
             printf("Protokollverletzung durch Gameserver Client befindet sich nicht mehr im Prolog");
         }
         printf("Versions Nummer des MNM Webservers: %s" , splited_reply[3]);
-        //TODO Check if fitting Versions
+        //Check if fitting Versions
+        splited_reply[3]++;
+        double version_server;
+        sscanf(splited_reply[3], "%lf", &version_server);
+        double version_client;
+        sscanf(version, "%lf" , &version_client);
+        
+        if((int)version_server != (int) version_client){
+            quit = true;
+            printf("\n Version des Clienten: %s ist nicht mit der des Servers: v%s kompatibel!",version ,  splited_reply[3] );
+            return;
+        }
+        
         // send Clients version
-        if( send(fd, "VERSION", strlen("VERSION\0"),0) < 0){
-            perror("Version des Clienten konnte nicht gesendet werden!");
+        char msg[13] = "VERSION ";
+        strcat(msg, version);
+        
+        if( send_to_gameserver(fd, msg) < 0){
+            printf("Version des Clienten konnte nicht gesendet werden!");
             quit = true;
         }
     
     // Server allows entering Game
-    }else if(strcmp(splited_reply[1], "PLAYING")) {
+    }else if(strstr(splited_reply[1], "PLAYING")) {
         
         //TODO Start Game
         //printf("Protokollverletzung durch Gameserver, Spieler bereits in Spiel!");
         
     
     // Player id- name allocation
-     }else if(strcmp(splited_reply[1], "YOU")) {
+     }else if(strstr(splited_reply[1], "YOU")) {
         if(_player == NULL && _phase == PROLOG){
             char *end;
         
@@ -98,7 +114,7 @@ void handle(char *server_reply, int fd){
         }
         
     // Count Players in Game
-    }else if(strcmp(splited_reply[1], "TOTAL")) {
+    }else if(strstr(splited_reply[1], "TOTAL")) {
         if(_phase == PROLOG){
             char *end;
             long tmp = strtol(splited_reply[2], &end, 13);
@@ -118,7 +134,7 @@ void handle(char *server_reply, int fd){
         }
     
             // All Players in Game transfered to Client
-    }else if(strcmp(splited_reply[1], "ENDPLAYERS")) {
+    }else if(strstr(splited_reply[1], "ENDPLAYERS")) {
         // Todo set Flag in Gameparams
         if(_phase == PROLOG){
              printf("Alle Gegenspieler eingelesen -> nächste Phase");
@@ -129,63 +145,62 @@ void handle(char *server_reply, int fd){
         }
         
         // Client Waits for Server
-    }else if(strcmp(splited_reply[1], "WAIT")) {
+    }else if(strstr(splited_reply[1], "WAIT")) {
         
         printf("Warte auf Gameserver");
-        if( send(fd, "OKWAIT", strlen("OKWAIT\0"),0) < 0){
+        if( send_to_gameserver(fd, "OKWAIT") < 0){
             perror("Quittung für Wait konnte nicht gesendet werden!");
             quit = true;
         }
         
         //Server allows Client to make next Move
-    }else if(strcmp(splited_reply[1], "MOVE")) {
+    }else if(strstr(splited_reply[1], "MOVE")) {
         // TODO
          printf("Du bist am Zug und hast %s sekunden" ,splited_reply[2]);
         
         //Changed Gamestate - Server sends changed pieces
-    }else if(strcmp(splited_reply[1], "PIECESLIST")) {
+    }else if(strstr(splited_reply[1], "PIECESLIST")) {
         //TODO Flag
          printf("Steine setzen");
     
         //Move Brick
-        //TODO strcmp -> zu contains
-    }else if(strcmp(splited_reply[1], "@")) {
+    }else if(strstr(splited_reply[1], "@")) {
         printf("Stein auf %s setzen", splited_reply[1]);
         //TODO change gameState
     
         //Server erlaubt berechnung des nächsten Zuges
-    }else if(strcmp(splited_reply[1], "OKTHINKING")) {
+    }else if(strstr(splited_reply[1], "OKTHINKING")) {
         // thinking();
         printf("Berechne deinen Zug");
         
         //Game over
-    }else if(strcmp(splited_reply[1], "GAMEOVER")) {
+    }else if(strstr(splited_reply[1], "GAMEOVER")) {
         printf("das Spiel ist vorbei");
         quit = true;
         
         //Changed Game Pieces transfered
-    }else if(strcmp(splited_reply[1], "ENDPIECESLIST")) {
+    }else if(strstr(splited_reply[1], "ENDPIECESLIST")) {
         //TODO Flag setzen
         printf("Alle Steine gelesen und gesetzt");
         
         //Gewinner Spiel
-    }else if(strcmp(splited_reply[1], "PLAYER0WON")) {
+    }else if(strstr(splited_reply[1], "PLAYER0WON")) {
         
-        if (strcmp(splited_reply[2], "Yes")){
+        if (strstr(splited_reply[2], "Yes")){
             printf("Player 0 gewinnt");
         } else{
             printf("Player 0 verliert");
         }
         
          //Gewinner Spiel
-    }else if(strcmp(splited_reply[1], "PLAYER1WON")) {
-        if (strcmp(splited_reply[2], "Yes")){
+    }else if(strstr(splited_reply[1], "PLAYER1WON")) {
+        if (strstr(splited_reply[2], "Yes")){
             printf("Player 1 gewinnt");
         } else{
             printf("Player 1 verliert");
         }
         //Quit Client and connection
-    }else if(strcmp(splited_reply[1], "QUIT")) {
+    }else if(strstr(splited_reply[1], "QUIT")) {
         printf("Beende deinen Clienten ");
         quit = true;
         
@@ -214,13 +229,13 @@ void handle(char *server_reply, int fd){
         
         //sende gewünschte Spielernummer (noch leer)
         char *message = "Player";
-        if( send(fd, message, strlen(message),0) < 0){
+        if( send_to_gameserver(fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen");
             quit = true;
         }
         
         // Client Version wurde akzeptiert
-    } else if (strcmp(server_reply, "Client version accepted")){
+    } else if (strstr(server_reply, "Client version accepted")){
             
             printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!");
             // Sende die Game-ID zum Server
@@ -229,7 +244,7 @@ void handle(char *server_reply, int fd){
             sprintf(id_game, "%d", _gameId);
             strcat(id_msg, id_game);
             
-            if( send(fd, id_msg, strlen(id_msg),0) < 0){
+            if( send_to_gameserver(fd, id_msg) < 0){
                 perror("Fehler bei der Übertragung der Game Id!");
                 quit = true;
             }
@@ -318,10 +333,13 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
     return count;
 }
 
-
-//int send_to_gameserver(int fd, char *message){
-//    return (int)send(fd, message, strlen(message), 0);
-//}
+/**
+ * Tatsächliches senden der Nachricht
+ */
+int send_to_gameserver(int fd, char *message){
+    printf("\n send: %s",message);
+    return (int)write(fd, message, strlen(message));
+}
 
 
 /*int main(int argc, const char * argv[]) {

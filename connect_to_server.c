@@ -18,9 +18,11 @@ int connect_to_server ()
 	struct in_addr **ip_host;
 	
 	//Anlegen von Socket
-	if((create_socket = socket (AF_INET, SOCK_STREAM, 0)) > 0) {
-		printf ("Socket wurde angelegt \n");
+	if((create_socket = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Socket anlegen fehlgeschlagen! \n");
+        return -1;
 	}
+    printf ("Socket wurde angelegt \n");
 	
 	//Vorbereiten von Socket
 	host = gethostbyname ( HOSTNAME );
@@ -30,9 +32,12 @@ int connect_to_server ()
 	address.sin_addr = **ip_host;
 	
 	//Verbinden mit Server
-	if((connect (create_socket, (struct sockaddr *)&address, sizeof(address))) == 0){
-	 	printf ("Verbindung mit dem Server hergestellt \n");
-	 }
+	if((connect (create_socket, (struct sockaddr *)&address, sizeof(address))) != 0){
+        perror("Verbindungsaufbau fehlgeschlagen! \n");
+        return -1;
+    }
+    printf ("Verbindung mit dem Server hergestellt \n");
+	 
 	 
 		 
 	 //EXIT
