@@ -46,9 +46,9 @@ int main(int argc, char *argv[]) {
         }
 
         // hat die GameId wirklich 13 Stellen?
-        if (strlen(game_id) != 13) {
-                printHelp();
-                return EXIT_FAILURE;
+        if (game_id == NULL || strlen(game_id) != 13) {
+          printHelp();
+          return EXIT_FAILURE;
         }
 
         // wenn kein -f Flag, dann nehme standard_filename
