@@ -1,6 +1,9 @@
 
 #include "performConnection.h"
-#include <stdbool.h>
+#define BUFFERSIZE 1024
+
+char in_buffer[BUFFERSIZE];
+size_t in_buffer_used =0;
 
 bool quit = false;
 
@@ -8,6 +11,7 @@ player *_player;
 player *opponent_players;
 game *gameparams;
 phase _phase = PROLOG;
+prolog_data _prolog_data;
 
 char *_game_id;
 
@@ -17,29 +21,77 @@ phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
 };
 
+void initConnection(int fd, char *game_id){
+     _game_id = game_id;
+    gameparams = malloc(sizeof(gameparams));
+    if(gameparams==NULL){
+        perror("Memorry Allocation failed\n");
+        disconnect(fd);
+        exit(EXIT_FAILURE);
+    }
+    
+    performConnection(fd, true);
+}
+
+void holdConnection(int fd){
+    performConnection(fd, false);
+}
 
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int fd, char *game_id){
+void performConnection(int fd, bool is_prolog){
     //Placeholder
     //Buffer for reading/writing
-    //_phase = run_phase(_phase,data);
+    //_phase = run_phase(_phase,data)
     
-    _game_id = game_id;
-    
-    while(1){
-        char  server_reply[100];// = malloc(sizeof(char)*100);
+    while((_phase == PROLOG)== is_prolog){
+        size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
+        if (buffer_remain == 0) {
+            fprintf(stderr, "Line exceeded buffer length!\n");
+            abort();
+        }
+        
+        ssize_t recv_size = recv(fd, (void*)&in_buffer[in_buffer_used], buffer_remain, MSG_DONTWAIT);
+        
+       // = malloc(sizeof(char)*100);
         //empfange neue Nachricht
-        int rec_byte = (int)recv(fd , server_reply , 100 , 0);
 
-        if(rec_byte < 0){
+        if(recv_size < 0){
             perror("Receiving Message failed \n");
             break;
             
         //Teste auf Fehlemeldung vom Server
-        }else if(rec_byte>0){
+        }else if(recv_size>0){
+            in_buffer_used += recv_size;
             
+            char *line_start = in_buffer;
+            char *line_end;
+            while ( (line_end = (char*)memchr((void*)line_start, '\n', in_buffer_used - (line_start - in_buffer))))
+            {
+                *line_end = 0;
+                process_line(line_start, fd);
+                line_start = line_end + 1;
+            }
+            /* Shift buffer down so the unprocessed data is at the start */
+            in_buffer_used -= (line_start - in_buffer);
+            memmove(in_buffer, line_start, in_buffer_used);
+        }
+   /**     if(quit){
+            break;
+        }
+        // free(server_reply);
+        
+    }
+    if(quit)
+        disconnect(fd);
+
+    */
+    }
+}
+
+void process_line(char *server_reply, int fd){
+    
             char **split_reply_by_nl;
             int count = split(server_reply, '\n', &split_reply_by_nl);
             
@@ -51,7 +103,7 @@ void performConnection(int fd, char *game_id){
                    // printf("Fehler auf dem Gameserver ... Verbindung trennen! \n");
                     //printf(" %s \n", split_reply_by_nl[i]);
                     quit = true;
-        //Teste ob die Nachricht valide ist
+                    //Teste ob die Nachricht valide ist
                 }else if (split_reply_by_nl[i][0] == '+'){
 
             
@@ -78,24 +130,16 @@ void performConnection(int fd, char *game_id){
                     free(splited_reply);
         // Beende Verbindung wenn Nachricht invalid 
                 }else{
-                    printf("Fehler auf dem Gameserver ... Invalid Token at beginn of msg! \n%s",split_reply_by_nl[i]);
+                    printf("Fehler auf dem Gameserver ... Invalid Token at beginn of msg! %s\n",split_reply_by_nl[i]);
                     quit = true;
                     //printf(" %s \n", server_reply);
                    
                 }
         // Im Handle der Nachricht wurde ein Fehler identifiziert ... beende die Verbindung
             }
+             if(!(strcmp(split_reply_by_nl[count-1]," " )))  printf("REST: %s \n" ,split_reply_by_nl[count-1]);
             free(split_reply_by_nl);
         }
-        if(quit){
-            break;
-        }
-        
-        memset(server_reply,0,strlen(server_reply));
-       // free(server_reply);
-        
-    }
-    disconnect(fd);
 
 }
 
@@ -106,7 +150,7 @@ phase handle_prolog(phase_data *data ){
     printf("handle: %s\n", data->server_reply);
 
     if(strstr(data->splited_reply[1], "MNM")) {
-        if(prolog_data.version_check != 1){
+        if(_prolog_data.version_check != 1){
             printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
             //Check if fitting Versions
             data->splited_reply[3]++;
@@ -129,7 +173,7 @@ phase handle_prolog(phase_data *data ){
                 printf("Version des Clienten konnte nicht gesendet werden!\n");
                 quit = true;
             }
-            prolog_data.version_check = 1;
+            _prolog_data.version_check = 1;
         }else{
             printf("Versionsnummer bereits erhalten!\n");
             quit= true;
@@ -138,7 +182,7 @@ phase handle_prolog(phase_data *data ){
         
         // Server allows entering Game
     }else if(strstr(data->splited_reply[1], "PLAYING")) {
-        if(prolog_data.playing != 1){
+        if(_prolog_data.playing != 1){
             if(!strstr(data->splited_reply[2], config.gamekindname)){
                 printf("Falsches Spiel!\n");
                 quit = true;
@@ -148,7 +192,7 @@ phase handle_prolog(phase_data *data ){
                 printf("Client und Server Spiel-Typ stimmern überein!\n");
             }
             
-            prolog_data.playing =1;
+            _prolog_data.playing =1;
         }else{
             printf("Spiel bereits gecheckt!\n");
             quit= true;
@@ -156,7 +200,7 @@ phase handle_prolog(phase_data *data ){
 
         // Player id- name allocation
     }else if(strstr(data->splited_reply[1], "YOU")) {
-        if(prolog_data.you != 1){
+        if(_prolog_data.you != 1){
             char *end;
 
             long l = strtol(data->splited_reply[2], &end, 13);
@@ -165,7 +209,7 @@ phase handle_prolog(phase_data *data ){
             _player->number = (int)l;
             _player->player_name = data->splited_reply[3];
             printf("Hi (%i) %s\n!" ,_player->number, _player->player_name);
-            prolog_data.you =1;
+            _prolog_data.you =1;
         } else{
             perror("Böser Server ... Player wurde bereits gestezt\n");
             quit = true;
@@ -173,20 +217,24 @@ phase handle_prolog(phase_data *data ){
 
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
-        if(prolog_data.players != 1){
+        if(_prolog_data.players != 1){
             char *end;
             long tmp = strtol(data->splited_reply[2], &end, 13);
 
             int players_in_game = (int)tmp;
+            
+            
             //set num players in gameparams
             opponent_players = (player*)malloc(sizeof(player)*players_in_game);
+            if(opponent_players == NULL) perror("Players cant be allocated");
+            gameparams->player_count = players_in_game;
 
             if(players_in_game != 1){
                 printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
             }else{
                 printf("In dem von dir gewählten Spiel befindet sich nun %i Spieler\n" , players_in_game);
             }
-             prolog_data.players =1;
+             _prolog_data.players =1;
         }else{
             printf("Spieler bereits übermittelt!\n");
             quit= true;
@@ -199,7 +247,7 @@ phase handle_prolog(phase_data *data ){
 
         //Neuer Spielerim Spiel
     } else if(data->count_elements == 4){
-        if(prolog_data.players ==1){
+        if(_prolog_data.players ==1){
             char *end;
             long nr_l = strtol(data->splited_reply[1], &end, 1);
 
@@ -216,10 +264,11 @@ phase handle_prolog(phase_data *data ){
             else
                 printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, data->splited_reply[2]);
 
-            opponent_players[gameparams->player_count-1] = *p;
-            printf("test\n");
+            *opponent_players = *p;
+            opponent_players++;
+        
            // int tmp = gameparams->player_count;
-            gameparams->player_count++;
+            
         }else{
             
             printf("Spieler werden nicht gesetzt!\n");
@@ -229,7 +278,7 @@ phase handle_prolog(phase_data *data ){
 
         // Name des Spiels
     }else if (data->count_elements == 2){
-        if(prolog_data.playing == 1){
+        if(_prolog_data.playing == 1){
             printf("Bot betritt das Spiel: %s!" , data->splited_reply[1]);
 
             //sende gewünschte Spielernummer (noch leer)
@@ -245,7 +294,7 @@ phase handle_prolog(phase_data *data ){
 
         // Client Version wurde akzeptiert
     } else if (strstr(data->server_reply, "Client version accepted")){
-        if(prolog_data.version_accepted != 1){
+        if(_prolog_data.version_accepted != 1){
             printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
             // Sende die Game-ID zum Server
             char id_msg[20]= "ID ";
@@ -254,7 +303,7 @@ phase handle_prolog(phase_data *data ){
             strcat(id_game, "\n");
             strcat(id_msg, id_game);
             
-            prolog_data.version_accepted = 1;
+            _prolog_data.version_accepted = 1;
             if( send_to_gameserver(data->fd, id_msg) < 0){
                 perror("Fehler bei der Übertragung der Game Id!\n");
                 quit = true;
@@ -275,62 +324,62 @@ phase handle_course(phase_data *data ){
     phase new_phase = _phase;
     if(strstr(data->splited_reply[1], "WAIT")) {
 
-        printf("Warte auf Gameserver");
+        printf("Warte auf Gameserver\n");
         if( send_to_gameserver(data->fd, "OKWAIT\n") < 0){
-            perror("Quittung für Wait konnte nicht gesendet werden!");
+            perror("Quittung für Wait konnte nicht gesendet werden\n!");
             quit = true;
         }
 
         //Server allows Client to make next Move
     }else if(strstr(data->splited_reply[1], "MOVE")) {
         // TODO
-        printf("Du bist am Zug und hast %s sekunden" ,data->splited_reply[2]);
+        printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
         //TODO Flag
-        printf("Steine setzen");
+        printf("Steine setzen\n");
 
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
-        printf("Stein auf %s setzen", data->splited_reply[1]);
+        printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //TODO change gameState
 
         //Server erlaubt berechnung des nächsten Zuges
     }else if(strstr(data->splited_reply[1], "OKTHINKING")) {
         // thinking();
-        printf("Berechne deinen Zug");
+        printf("Berechne deinen Zug\n");
 
         //Game over
     }else if(strstr(data->splited_reply[1], "GAMEOVER")) {
-        printf("das Spiel ist vorbei");
+        printf("das Spiel ist vorbei\n");
         quit = true;
 
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
         //TODO Flag setzen
-        printf("Alle Steine gelesen und gesetzt");
+        printf("Alle Steine gelesen und gesetzt\n");
 
         //Gewinner Spiel
 
     }else if(strcmp(data->splited_reply[1], "PLAYER0WON")) {
 
         if (strcmp(data->splited_reply[2], "Yes")){
-            printf("Player 0 gewinnt");
+            printf("Player 0 gewinnt\n");
         } else{
-            printf("Player 0 verliert");
+            printf("Player 0 verliert\n");
         }
 
         //Gewinner Spiel
     }else if(strstr(data->splited_reply[1], "PLAYER1WON")) {
         if (strstr(data->splited_reply[2], "Yes")){
-            printf("Player 1 gewinnt");
+            printf("Player 1 gewinnt\n");
         } else{
-            printf("Player 1 verliert");
+            printf("Player 1 verliert\n");
         }
         //Quit Client and connection
     }else if(strstr(data->splited_reply[1], "QUIT")) {
-        printf("Beende deinen Clienten ");
+        printf("Beende deinen Clienten\n");
         quit = true;
 
         //new opponent player
@@ -444,7 +493,6 @@ int send_to_gameserver(int fd, char *message){
 void disconnect(int fd){
     close(fd);
     free(_player);
-    free(opponent_players);
     free(gameparams);
 }
 
