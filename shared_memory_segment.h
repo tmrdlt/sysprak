@@ -9,10 +9,7 @@
 #ifndef shared_memory_segment_h
 #define shared_memory_segment_h
 
-
-
-
-
-void shared_memory_segment();
+int shm_id ();
+char *address_shm (int shm_id);
 
 #endif /* shared_memory_segment_h */
