@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
         performConnection(fd, game_id);
 
-		
-		int shm_id; 
+
+		int shm_id;
 		char *shmdata;
 		shm_id = shm_id();
         switch (pid = fork()) {
