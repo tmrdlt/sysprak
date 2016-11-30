@@ -5,6 +5,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include "shared_memory_segment.h"
+#include "performConnection.h"
 
 //Anlegen von SHM
 int shm_id () {
