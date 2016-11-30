@@ -5,7 +5,6 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include "shared_memory_segment.h"
-#include "definitions.h"
 
 void thinker_process () {
 	//Anlegen von SHM
