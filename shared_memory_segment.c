@@ -6,7 +6,7 @@
 #include<stdio.h>
 #include "shared_memory_segment.h"
 
-void thinker_process () {
+void shared_memory_segment () {
 	//Anlegen von SHM
 	int shm_id;
 	shm_id = shmget(IPC_PRIVATE, sizeof(player)*game.player_count, IPC_CREAT);
