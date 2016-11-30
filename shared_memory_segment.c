@@ -31,20 +31,22 @@ char *address_shm (int shm_id) {
 	return address_shm;
 }
 	
-	/*
-	if(shmctl (shm_id, IPC_RMID, ?) < 0) {
+	/*int delete_shm (it shm_id) {
+	struct shmid_ds *buf;
+	if(shmctl (shm_id, IPC_RMID, buf) < 0) {
         perror("SHM loeschen fehlgeschlagen! \n");
         return -1;
 	}
-	
+	return 0;
+}
 	
 	//Ablegen von Daten in SHM
-	char *data;
-	data = address_shm;
-	for (game.player_count=!0 ; game.player_count--)
-	{
-		*data++ = player.player_name;
-		*data++ = player.number;
-		*data++ = player.flag;
+	void write_in_shm(char *address_shm){
+		for (game.player_count=!0 ; game.player_count--)
+			{
+		*address_shm++ = player.player_name;
+		*address_shm++ = player.number;
+		*address_shm++ = player.flag;
+			}
 	}*/
 }
