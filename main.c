@@ -67,16 +67,21 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
         performConnection(fd, game_id);
 
-
+		
+		int shm_id; 
+		char *shmdata;
+		shm_id = shm_id();
         switch (pid = fork()) {
         case -1:
                 printf ("Fehler bei fork()\n");
                 break;
         case 0:
                 printf("Hi hier ist der Connector (Kindprozess)\n");
+                shmdata = address_shm (shm_id);
                 break;
         default:
                 printf("Hi hier ist der Thinker (Elternprozess)\n");
+                shmdata = address_shm (shm_id);
                 break;
         }
 
