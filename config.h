@@ -12,10 +12,7 @@ struct{
     int portnumber;
     char gamekindname[30];
 }config;
-/* #define  HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de"
-#define  PORTNUMBER 1357
-#define  GAMEKINDNAME "Bashni"
-*/
+
 void openconfig(char *filename);
 
 
