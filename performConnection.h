@@ -44,6 +44,16 @@ typedef struct {
     int count_elements;
 }phase_data;
 
+struct {
+    int version_check;
+    int version_accepted;
+    int playing;
+    int game_name;
+    int you;
+    int total;
+    int players;
+}prolog_data;
+
 //phase table function
 typedef phase phase_func_t( phase_data *data );
 
@@ -72,6 +82,8 @@ void performConnection(int fd, char *game_id);
 //void handle(char *server_reply, int fd);
 
 int split(char *string_to_split , char delimiter , char ***dest);
+
+void disconnect(int fd);
 
 int send_to_gameserver(int fd, char *message);
 
