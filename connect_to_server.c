@@ -1,29 +1,18 @@
-
 #include "connect_to_server.h"
 
 
 int connect_to_server ()
 {
-	int create_socket, if_connected;
+	int create_socket;
 	struct sockaddr_in address;
 	struct hostent *host;
 	struct in_addr **ip_host;
 
 	//Anlegen von Socket
-
-	create_socket = socket (AF_INET, SOCK_STREAM, 0);
-	if(create_socket < 0) {
-		printf ("Socket wurde nicht angelegt \n");
-	}
-	 printf ("Socket wurde angelegt \n");
-
-
 	if((create_socket = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("Socket anlegen fehlgeschlagen! \n");
         return -1;
 	}
-
-    printf ("Socket wurde angelegt \n");
 
 
 	//Vorbereiten von Socket
@@ -35,11 +24,6 @@ int connect_to_server ()
 
 	//Verbinden mit Server
 
-	if_connected = connect (create_socket, (struct sockaddr *)&address, sizeof(address));
-	if(if_connected != 0){
-	 	printf ("Verbindung mit dem Server konnte nicht hergestellt werden \n");
-	 }
-	 printf ("Verbindung mit dem Server hergestellt \n");
 
 
 	if((connect (create_socket, (struct sockaddr *)&address, sizeof(address))) != 0){
