@@ -22,7 +22,7 @@ phase_func_t* const phase_table[3] = {
 };
 
 void initConnection(int fd, char *game_id){
-     _game_id = game_id;
+    _game_id = game_id;
     gameparams = malloc(sizeof(gameparams));
     if(gameparams==NULL){
         perror("Memorry Allocation failed\n");
@@ -44,24 +44,27 @@ void performConnection(int fd, bool is_prolog){
     //Placeholder
     //Buffer for reading/writing
     //_phase = run_phase(_phase,data)
+  
     
     while((_phase == PROLOG)== is_prolog){
+        printf("Phase: %d\n" , _phase);
+        printf("Prolog: %d\n" , is_prolog);
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
             fprintf(stderr, "Line exceeded buffer length!\n");
             abort();
         }
         
-        ssize_t recv_size = recv(fd, (void*)&in_buffer[in_buffer_used], buffer_remain, MSG_DONTWAIT);
+        ssize_t recv_size = recv(fd, &in_buffer[in_buffer_used], buffer_remain, 0);
         
-       // = malloc(sizeof(char)*100);
+        // = malloc(sizeof(char)*100);
         //empfange neue Nachricht
-
+        
         if(recv_size < 0){
             perror("Receiving Message failed \n");
             break;
             
-        //Teste auf Fehlemeldung vom Server
+            //Teste auf Fehlemeldung vom Server
         }else if(recv_size>0){
             in_buffer_used += recv_size;
             
@@ -72,83 +75,67 @@ void performConnection(int fd, bool is_prolog){
                 *line_end = 0;
                 process_line(line_start, fd);
                 line_start = line_end + 1;
+                if(is_prolog && _phase != PROLOG){
+                    //break;
+                }
             }
             /* Shift buffer down so the unprocessed data is at the start */
             in_buffer_used -= (line_start - in_buffer);
             memmove(in_buffer, line_start, in_buffer_used);
         }
-   /**     if(quit){
+        if(quit){
+            disconnect(fd);
             break;
-        }
-        // free(server_reply);
-        
-    }
-    if(quit)
-        disconnect(fd);
-
-    */
+         }
     }
 }
-
+    
 void process_line(char *server_reply, int fd){
     
-            char **split_reply_by_nl;
-            int count = split(server_reply, '\n', &split_reply_by_nl);
-            
-            for(int i = 0 ; i < count-1 ; i ++){
-                
-                printf("S: %s \n", split_reply_by_nl[i]);
-                
-                if (split_reply_by_nl[i][0] == '-'){
-                   // printf("Fehler auf dem Gameserver ... Verbindung trennen! \n");
-                    //printf(" %s \n", split_reply_by_nl[i]);
-                    quit = true;
-                    //Teste ob die Nachricht valide ist
-                }else if (split_reply_by_nl[i][0] == '+'){
-
-            
-                    char **splited_reply;
-                    int count_elements = split(split_reply_by_nl[i], ' ', &splited_reply);
-            
-                    phase_data *data = (phase_data*) malloc(sizeof(phase_data));
-
-                    if(data == NULL){
-                        perror("Memory allocation Phase data failed \n");
-                        quit = true;
-                        break;
-                    }
-
-                    data->count_elements = count_elements;
-                    data->splited_reply = splited_reply;
-                    data->server_reply = split_reply_by_nl[i];
-                    data->fd = fd;
+    
+    if (server_reply[0] == '-'){
+        // printf("Fehler auf dem Gameserver ... Verbindung trennen! \n");
+        //printf(" %s \n", split_reply_by_nl[i]);
+        quit = true;
+        //Teste ob die Nachricht valide ist
+    }else if (server_reply[0] == '+'){
         
-
-                    _phase = run_phase(_phase,data);
-            
-                    free(data);
-                    free(splited_reply);
-        // Beende Verbindung wenn Nachricht invalid 
-                }else{
-                    printf("Fehler auf dem Gameserver ... Invalid Token at beginn of msg! %s\n",split_reply_by_nl[i]);
-                    quit = true;
-                    //printf(" %s \n", server_reply);
-                   
-                }
-        // Im Handle der Nachricht wurde ein Fehler identifiziert ... beende die Verbindung
-            }
-             if(!(strcmp(split_reply_by_nl[count-1]," " )))  printf("REST: %s \n" ,split_reply_by_nl[count-1]);
-            free(split_reply_by_nl);
+        
+        char **splited_reply;
+        int count_elements = split(server_reply, ' ', &splited_reply);
+        
+        phase_data *data = (phase_data*) malloc(sizeof(phase_data));
+        
+        if(data == NULL){
+            perror("Memory allocation Phase data failed \n");
+            quit = true;
+            return;
         }
-
+        
+        data->count_elements = count_elements;
+        data->splited_reply = splited_reply;
+        data->server_reply = server_reply;
+        data->fd = fd;
+        
+        
+        _phase = run_phase(_phase,data);
+        
+        free(data);
+        free(splited_reply);
+        // Beende Verbindung wenn Nachricht invalid
+    }else{
+        printf("Fehler auf dem Gameserver ... Invalid Token at beginn of msg! %s\n",server_reply);
+        quit = true;
+        //printf(" %s \n", server_reply);
+        
+    }
 }
 
 
 
 phase handle_prolog(phase_data *data ){
     phase new_phase = _phase;
-    printf("handle: %s\n", data->server_reply);
-
+    
     if(strstr(data->splited_reply[1], "MNM")) {
         if(_prolog_data.version_check != 1){
             printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
@@ -158,13 +145,13 @@ phase handle_prolog(phase_data *data ){
             sscanf(data->splited_reply[3], "%lf", &version_server);
             double version_client;
             sscanf(version, "%lf" , &version_client);
-
+            
             if((int)version_server != (int) version_client){
                 quit = true;
                 printf("Version des Clienten: %s ist nicht mit der des Servers: v%s kompatibel!\n",version ,  data->splited_reply[3] );
                 return new_phase;
             }
-
+            
             // send Clients version
             char msg[14] = "VERSION ";
             strcat(msg, version);
@@ -187,7 +174,7 @@ phase handle_prolog(phase_data *data ){
                 printf("Falsches Spiel!\n");
                 quit = true;
                 return new_phase;
-
+                
             }else{
                 printf("Client und Server Spiel-Typ stimmern überein!\n");
             }
@@ -197,30 +184,30 @@ phase handle_prolog(phase_data *data ){
             printf("Spiel bereits gecheckt!\n");
             quit= true;
         }
-
+        
         // Player id- name allocation
     }else if(strstr(data->splited_reply[1], "YOU")) {
         if(_prolog_data.you != 1){
             char *end;
-
+            
             long l = strtol(data->splited_reply[2], &end, 13);
-
+            
             _player= (player*) malloc(sizeof(player*));
             _player->number = (int)l;
             _player->player_name = data->splited_reply[3];
-            printf("Hi (%i) %s\n!" ,_player->number, _player->player_name);
+            printf("Hi (%i) %s!\n" ,_player->number, _player->player_name);
             _prolog_data.you =1;
         } else{
             perror("Böser Server ... Player wurde bereits gestezt\n");
             quit = true;
         }
-
+        
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
         if(_prolog_data.players != 1){
             char *end;
             long tmp = strtol(data->splited_reply[2], &end, 13);
-
+            
             int players_in_game = (int)tmp;
             
             
@@ -228,29 +215,30 @@ phase handle_prolog(phase_data *data ){
             opponent_players = (player*)malloc(sizeof(player)*players_in_game);
             if(opponent_players == NULL) perror("Players cant be allocated");
             gameparams->player_count = players_in_game;
-
+            
             if(players_in_game != 1){
                 printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
             }else{
                 printf("In dem von dir gewählten Spiel befindet sich nun %i Spieler\n" , players_in_game);
             }
-             _prolog_data.players =1;
+            _prolog_data.players =1;
         }else{
             printf("Spieler bereits übermittelt!\n");
             quit= true;
         }
-
+        
         // All Players in Game transfered to Client
     }else if(strstr(data->splited_reply[1], "ENDPLAYERS")) {
         // Todo set Flag in Gameparams
         new_phase = COURSE;
-
+        printf("All Players read, switch to next State! \n");
+        
         //Neuer Spielerim Spiel
     } else if(data->count_elements == 4){
         if(_prolog_data.players ==1){
             char *end;
             long nr_l = strtol(data->splited_reply[1], &end, 1);
-
+            
             int p_nr = (int)nr_l;
             player *p = (player*) malloc(sizeof(player));
             p->number = p_nr;
@@ -258,16 +246,16 @@ phase handle_prolog(phase_data *data ){
             long flag_l = strtol(data->splited_reply[3], &end, 1);
             int p_flag = (int)flag_l;
             p->flag = p_flag;
-
+            
             if(p_flag == 1)
                 printf("Spieler (%d) %s ist bereit\n" , p_nr, data->splited_reply[2]);
             else
                 printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, data->splited_reply[2]);
-
+            
             *opponent_players = *p;
             opponent_players++;
-        
-           // int tmp = gameparams->player_count;
+            
+            // int tmp = gameparams->player_count;
             
         }else{
             
@@ -275,12 +263,12 @@ phase handle_prolog(phase_data *data ){
             quit= true;
             
         }
-
+        
         // Name des Spiels
     }else if (data->count_elements == 2){
         if(_prolog_data.playing == 1){
             printf("Bot betritt das Spiel: %s!" , data->splited_reply[1]);
-
+            
             //sende gewünschte Spielernummer (noch leer)
             char message[] = "PLAYER \n";
             if( send_to_gameserver(data->fd, message) < 0){
@@ -291,7 +279,7 @@ phase handle_prolog(phase_data *data ){
             printf("Spiele stimmen evtl nicht überein\n");
             //TODO
         }
-
+        
         // Client Version wurde akzeptiert
     } else if (strstr(data->server_reply, "Client version accepted")){
         if(_prolog_data.version_accepted != 1){
@@ -315,7 +303,7 @@ phase handle_prolog(phase_data *data ){
         printf("Nachricht konnte nicht erkannt werden oder ist für die aktuelle Phase nicht zulässig:\n %s", data->server_reply);
         quit = true;
     }
-
+    
     return new_phase;
 }
 
@@ -323,53 +311,53 @@ phase handle_prolog(phase_data *data ){
 phase handle_course(phase_data *data ){
     phase new_phase = _phase;
     if(strstr(data->splited_reply[1], "WAIT")) {
-
+        
         printf("Warte auf Gameserver\n");
         if( send_to_gameserver(data->fd, "OKWAIT\n") < 0){
             perror("Quittung für Wait konnte nicht gesendet werden\n!");
             quit = true;
         }
-
+        
         //Server allows Client to make next Move
     }else if(strstr(data->splited_reply[1], "MOVE")) {
         // TODO
         printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
-
+        
         //Changed Gamestate - Server sends changed pieces
-    }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
+    }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
         //TODO Flag
-        printf("Steine setzen\n");
-
+        
+         printf("Alle Steine gelesen und gesetzt\n");
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
         printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //TODO change gameState
-
+        
         //Server erlaubt berechnung des nächsten Zuges
     }else if(strstr(data->splited_reply[1], "OKTHINKING")) {
         // thinking();
         printf("Berechne deinen Zug\n");
-
+        
         //Game over
     }else if(strstr(data->splited_reply[1], "GAMEOVER")) {
         printf("das Spiel ist vorbei\n");
         quit = true;
-
+        
         //Changed Game Pieces transfered
-    }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
+    }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
         //TODO Flag setzen
-        printf("Alle Steine gelesen und gesetzt\n");
-
+       printf("Steine setzen\n");
+        
         //Gewinner Spiel
-
+        
     }else if(strcmp(data->splited_reply[1], "PLAYER0WON")) {
-
+        
         if (strcmp(data->splited_reply[2], "Yes")){
             printf("Player 0 gewinnt\n");
         } else{
             printf("Player 0 verliert\n");
         }
-
+        
         //Gewinner Spiel
     }else if(strstr(data->splited_reply[1], "PLAYER1WON")) {
         if (strstr(data->splited_reply[2], "Yes")){
@@ -381,7 +369,7 @@ phase handle_course(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "QUIT")) {
         printf("Beende deinen Clienten\n");
         quit = true;
-
+        
         //new opponent player
     }else{
         printf("Nachricht konnte nicht erkannt werden oder ist für die aktuelle Phase nicht zulässig:\n %s", data->server_reply);
@@ -392,7 +380,7 @@ phase handle_course(phase_data *data ){
 
 phase handle_draft(phase_data *data ){
     phase new_phase = _phase;
-
+    
     if(strstr(data->splited_reply[1], "MOVEOK")) {
     }
     
@@ -413,8 +401,8 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
     int i = 0;
     char *copy_of_string;
     char *tmp_dest;
-
-
+    
+    
     // count words and allocate array of strings
     copy_of_string = string_to_spilt;
     while (*copy_of_string != '\0')
@@ -423,13 +411,13 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
             count++;
         copy_of_string++;
     }
-
+    
     *dest = (char**) malloc(sizeof(char*) * count);
     if (*dest == NULL){
         perror("Memory allocation failed");
         exit(1);
     }
-
+    
     // count tokens of each word and allocate each string
     copy_of_string = string_to_spilt;
     while (*copy_of_string != '\0')
@@ -441,7 +429,7 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
                 perror("Memory allocation failed");
                 exit(1);
             }
-
+            
             token_len = 0;
             i++;
         }
@@ -453,7 +441,7 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
         perror("Memory allocation failed");
         exit(1);
     }
-
+    
     // fill array with splited strings(words)
     i = 0;
     copy_of_string = string_to_spilt;
@@ -473,7 +461,7 @@ int split (char *string_to_spilt, char delimiter, char ***dest)
         }
         copy_of_string++;
     }
-
+    
     return count;
 }
 
@@ -497,38 +485,38 @@ void disconnect(int fd){
 }
 
 /*int main(int argc, const char * argv[]) {
-    // insert code here...
-
-    printf("Hello World\n");
-
-    char *instructionsToCheck[] = {
-        "+ MNM Gameserver 12551",
-        "+ Client version accepted - please send Game-ID to join",
-        "+ PLAYING 12451",
-        "+ Mustergame",
-        "+ YOU 2 Hans",
-        "+ TOTAL 3"
-        "+ 0 Peter Nein",
-        "+ 1 Paul Ja",
-        "+ 3 Helga JA",
-        "+ ENDPLAYERS",
-        "+ MOVE 2315",
-        "+ PIECESLIST",
-        "+ w@A1",
-        "+ b@C1",
-        "+ ENDPIECESLIST",
-        "+ OKTHINK",
-        "+ GAMEOVER"
-        "+ PLAYER0WON Yes",
-        "+ PLAYER1WON No",
-        "+ PLAYER0WON No",
-        "+ PLAYER1WON Yes",
-        "+ QUIT"
-    };
-    for(int i = 0 ; i< 20; i++){
-        handle(instructionsToCheck[i], 12);
-    }
-
-    return 0;
-}
-*/
+ // insert code here...
+ 
+ printf("Hello World\n");
+ 
+ char *instructionsToCheck[] = {
+ "+ MNM Gameserver 12551",
+ "+ Client version accepted - please send Game-ID to join",
+ "+ PLAYING 12451",
+ "+ Mustergame",
+ "+ YOU 2 Hans",
+ "+ TOTAL 3"
+ "+ 0 Peter Nein",
+ "+ 1 Paul Ja",
+ "+ 3 Helga JA",
+ "+ ENDPLAYERS",
+ "+ MOVE 2315",
+ "+ PIECESLIST",
+ "+ w@A1",
+ "+ b@C1",
+ "+ ENDPIECESLIST",
+ "+ OKTHINK",
+ "+ GAMEOVER"
+ "+ PLAYER0WON Yes",
+ "+ PLAYER1WON No",
+ "+ PLAYER0WON No",
+ "+ PLAYER1WON Yes",
+ "+ QUIT"
+ };
+ for(int i = 0 ; i< 20; i++){
+ handle(instructionsToCheck[i], 12);
+ }
+ 
+ return 0;
+ }
+ */
