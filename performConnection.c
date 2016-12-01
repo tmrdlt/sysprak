@@ -42,10 +42,6 @@ void holdConnection(int fd){
  * performConnection holds client connection to Gameserver.
  */
 void performConnection(int fd, bool is_prolog){
-    //Placeholder
-    //Buffer for reading/writing
-    //_phase = run_phase(_phase,data)
-    
     
     while((_phase == PROLOG)== is_prolog){
         printf("Phase: %d\n" , _phase);
@@ -85,6 +81,7 @@ void performConnection(int fd, bool is_prolog){
             memmove(in_buffer, line_start, in_buffer_used);
         }
         if(quit){
+            printf("Quit Flag während des Handlings gesetzt ... beende Client");
             disconnect(fd);
             break;
         }
@@ -98,8 +95,8 @@ void process_line(char *server_reply, int fd){
     
     
     if (server_reply[0] == '-'){
-        // printf("Fehler auf dem Gameserver ... Verbindung trennen! \n");
-        //printf(" %s \n", split_reply_by_nl[i]);
+         printf("Server sendet Negativnachricht: \n");
+        printf(" %s \n", server_reply);
         quit = true;
         //Teste ob die Nachricht valide ist
     }else if (server_reply[0] == '+'){
@@ -128,7 +125,7 @@ void process_line(char *server_reply, int fd){
         free(splited_reply);
         // Beende Verbindung wenn Nachricht invalid
     }else{
-        printf("Fehler auf dem Gameserver ... Invalid Token at beginn of msg! %s\n",server_reply);
+        printf("Error - Ungültiges Zeichen zum Beginn der Nachricht! %s\n",server_reply);
         quit = true;
         //printf(" %s \n", server_reply);
         
@@ -180,7 +177,7 @@ phase handle_prolog(phase_data *data ){
                 return new_phase;
                 
             }else{
-                printf("Client und Server Spiel-Typ stimmern überein!\n");
+                printf("Client und Server Spiel-Typ stimmen überein!\n");
             }
             
             _prolog_data.playing =1;
@@ -274,8 +271,8 @@ phase handle_prolog(phase_data *data ){
                 quit = true;
             }
         } else{
-            printf("Spiele stimmen evtl nicht überein\n");
-            //TODO
+            printf("Bot bereits in einem Spiel\n");
+            quit = true;
         }
         
         // Client Version wurde akzeptiert
@@ -351,7 +348,6 @@ phase handle_course(phase_data *data ){
         printf("Steine setzen\n");
         
         //Gewinner Spiel
-        
     }else if(strcmp(data->splited_reply[1], "PLAYER0WON")) {
         
         if (strcmp(data->splited_reply[2], "Yes")){
