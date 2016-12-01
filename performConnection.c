@@ -25,7 +25,7 @@ void initConnection(int fd, char *game_id){
     _game_id = game_id;
     gameparams = malloc(sizeof(gameparams));
     if(gameparams==NULL){
-        perror("Memorry Allocation failed\n");
+        perror("Memorry Allocation 'Gameparams' failed\n");
         disconnect(fd);
         exit(EXIT_FAILURE);
     }
@@ -37,6 +37,7 @@ void holdConnection(int fd){
     performConnection(fd, false);
 }
 
+
 /*
  * performConnection holds client connection to Gameserver.
  */
@@ -44,7 +45,7 @@ void performConnection(int fd, bool is_prolog){
     //Placeholder
     //Buffer for reading/writing
     //_phase = run_phase(_phase,data)
-  
+    
     
     while((_phase == PROLOG)== is_prolog){
         printf("Phase: %d\n" , _phase);
@@ -86,10 +87,13 @@ void performConnection(int fd, bool is_prolog){
         if(quit){
             disconnect(fd);
             break;
-         }
+        }
     }
 }
-    
+
+/**
+ * Verarbeite die nächste komplett gelesene Zeile (Eine Nachricht)
+ */
 void process_line(char *server_reply, int fd){
     
     
@@ -132,7 +136,9 @@ void process_line(char *server_reply, int fd){
 }
 
 
-
+/**
+ * Handle Phase Prolog
+ */
 phase handle_prolog(phase_data *data ){
     phase new_phase = _phase;
     
@@ -141,10 +147,8 @@ phase handle_prolog(phase_data *data ){
             printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
             //Check if fitting Versions
             data->splited_reply[3]++;
-            double version_server;
-            sscanf(data->splited_reply[3], "%lf", &version_server);
-            double version_client;
-            sscanf(version, "%lf" , &version_client);
+            double version_server = string_to_float(data->splited_reply[3]);
+            double version_client = string_to_float(version);
             
             if((int)version_server != (int) version_client){
                 quit = true;
@@ -188,12 +192,9 @@ phase handle_prolog(phase_data *data ){
         // Player id- name allocation
     }else if(strstr(data->splited_reply[1], "YOU")) {
         if(_prolog_data.you != 1){
-            char *end;
-            
-            long l = strtol(data->splited_reply[2], &end, 13);
             
             _player= (player*) malloc(sizeof(player*));
-            _player->number = (int)l;
+            _player->number = string_to_int(data->splited_reply[2]);
             _player->player_name = data->splited_reply[3];
             printf("Hi (%i) %s!\n" ,_player->number, _player->player_name);
             _prolog_data.you =1;
@@ -205,11 +206,8 @@ phase handle_prolog(phase_data *data ){
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
         if(_prolog_data.players != 1){
-            char *end;
-            long tmp = strtol(data->splited_reply[2], &end, 13);
             
-            int players_in_game = (int)tmp;
-            
+            int players_in_game = string_to_int(data->splited_reply[2]);
             
             //set num players in gameparams
             opponent_players = (player*)malloc(sizeof(player)*players_in_game);
@@ -286,7 +284,9 @@ phase handle_prolog(phase_data *data ){
             printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
             // Sende die Game-ID zum Server
             char id_msg[20]= "ID ";
-            char id_game[16] = "3h2xfhfym0oh2";
+            char id_game[16];
+            sprintf(id_game, "%s", _game_id);
+            
             //sprintf(id_game, "%s", "#3h2xfhfym0oh2");
             strcat(id_game, "\n");
             strcat(id_msg, id_game);
@@ -307,7 +307,9 @@ phase handle_prolog(phase_data *data ){
     return new_phase;
 }
 
-
+/**
+ * Handle phase Spielverlauf
+ */
 phase handle_course(phase_data *data ){
     phase new_phase = _phase;
     if(strstr(data->splited_reply[1], "WAIT")) {
@@ -327,7 +329,7 @@ phase handle_course(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
         //TODO Flag
         
-         printf("Alle Steine gelesen und gesetzt\n");
+        printf("Alle Steine gelesen und gesetzt\n");
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
         printf("Stein auf %s setzen\n", data->splited_reply[1]);
@@ -346,7 +348,7 @@ phase handle_course(phase_data *data ){
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
         //TODO Flag setzen
-       printf("Steine setzen\n");
+        printf("Steine setzen\n");
         
         //Gewinner Spiel
         
@@ -378,6 +380,9 @@ phase handle_course(phase_data *data ){
     return new_phase;
 }
 
+/**
+ * Handle Phase Spielzug
+ */
 phase handle_draft(phase_data *data ){
     phase new_phase = _phase;
     
@@ -387,83 +392,14 @@ phase handle_draft(phase_data *data ){
     return new_phase;
 }
 
+/**
+ * Ermittelt anhand der aktuellen Phase die Methode die ausgeführt werden soll
+ */
 phase run_phase( phase cur_phase, phase_data *data ) {
     return phase_table[ cur_phase ]( data );
 }
 
-/**
- * Zerteilt string in string array
- */
-int split (char *string_to_spilt, char delimiter, char ***dest)
-{
-    int count = 1;
-    int token_len = 1;
-    int i = 0;
-    char *copy_of_string;
-    char *tmp_dest;
-    
-    
-    // count words and allocate array of strings
-    copy_of_string = string_to_spilt;
-    while (*copy_of_string != '\0')
-    {
-        if (*copy_of_string == delimiter)
-            count++;
-        copy_of_string++;
-    }
-    
-    *dest = (char**) malloc(sizeof(char*) * count);
-    if (*dest == NULL){
-        perror("Memory allocation failed");
-        exit(1);
-    }
-    
-    // count tokens of each word and allocate each string
-    copy_of_string = string_to_spilt;
-    while (*copy_of_string != '\0')
-    {
-        if (*copy_of_string == delimiter)
-        {
-            (*dest)[i] = (char*) malloc( sizeof(char) * token_len );
-            if ((*dest)[i] == NULL){
-                perror("Memory allocation failed");
-                exit(1);
-            }
-            
-            token_len = 0;
-            i++;
-        }
-        copy_of_string++;
-        token_len++;
-    }
-    (*dest)[i] = (char*) malloc( sizeof(char) * token_len );
-    if ((*dest)[i] == NULL){
-        perror("Memory allocation failed");
-        exit(1);
-    }
-    
-    // fill array with splited strings(words)
-    i = 0;
-    copy_of_string = string_to_spilt;
-    tmp_dest = ((*dest)[i]);
-    while (*copy_of_string != '\0')
-    {
-        if (*copy_of_string != delimiter && *copy_of_string != '\0')
-        {
-            *tmp_dest = *copy_of_string;
-            tmp_dest++;
-        }
-        else
-        {
-            *tmp_dest = '\0';
-            i++;
-            tmp_dest = ((*dest)[i]);
-        }
-        copy_of_string++;
-    }
-    
-    return count;
-}
+
 
 /**
  * Tatsächliches senden der Nachricht

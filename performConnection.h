@@ -16,6 +16,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "config.h"
+#include "string_helper.h"
 
 
 typedef struct{
@@ -87,8 +88,6 @@ void initConnection(int fd, char *game_id);
 void holdConnection(int fd);
 
 //void handle(char *server_reply, int fd);
-
-int split(char *string_to_split , char delimiter , char ***dest);
 
 void disconnect(int fd);
 
