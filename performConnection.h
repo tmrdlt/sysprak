@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include "config.h"
 #include "string_helper.h"
+#include "msg_creator.h"
 
 
 typedef struct{
