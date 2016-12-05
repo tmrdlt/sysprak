@@ -9,13 +9,16 @@
 #ifndef performConnection_h
 #define performConnection_h
 
-
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include "config.h"
+#include "string_helper.h"
+#include "msg_creator.h"
+
 
 typedef struct{
     char *player_name;
@@ -44,8 +47,20 @@ typedef struct {
     int count_elements;
 }phase_data;
 
+typedef struct {
+    int version_check;
+    int version_accepted;
+    int playing;
+    int game_name;
+    int you;
+    int total;
+    int players;
+}prolog_data;
+
 //phase table function
 typedef phase phase_func_t( phase_data *data );
+
+void process_line(char* server_reply, int fd);
 
 /**
  * Handles messages of Gameserver in Prolog
@@ -67,11 +82,15 @@ phase handle_draft(phase_data *data );
  */
 phase run_phase( phase cur_phase, phase_data *data );
 
-void performConnection(int fd, char *game_id);
+void performConnection(int fd, bool is_prolog);
+
+void initConnection(int fd, char *game_id);
+                    
+void holdConnection(int fd);
 
 //void handle(char *server_reply, int fd);
 
-int split(char *string_to_split , char delimiter , char ***dest);
+void disconnect(int fd);
 
 int send_to_gameserver(int fd, char *message);
 
