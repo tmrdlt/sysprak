@@ -13,9 +13,7 @@ game *gameparams;
 phase _phase = PROLOG;
 prolog_data _prolog_data;
 
-char *_game_id;
-
-char *version = "2.3";
+char *_game_id;	
 
 phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
