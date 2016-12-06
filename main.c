@@ -13,13 +13,15 @@
 // Bedienungshinweise
 void printHelp() {
         printf("How to use:\n");
-        printf("Please add -g <gameid>\n");
-        printf("the GameID has to be 13 digits\n");
-        printf("Optional: add -f <filename> to specify the config file\n");
+        printf("flags: -g <game_id> -p <player_number> -f <config_filename>\n");
+        printf("-g: REQUIRED, game_id has to be 13 digits.\n");
+        printf("-p: REQUIRED, specifies the player number.\n");
+        printf("-f: OPTIONAL, use this to specify a config file\n");
 }
+int player_number = 1;
 char *game_id;
 char *filename;
-char standard_filename[] = "/Users/Stephan/Desktop/bashni/bashni/sysprak/client.conf";
+char standard_filename[] = "client.conf";
 
 int main(int argc, char *argv[]) {
 
@@ -28,16 +30,17 @@ int main(int argc, char *argv[]) {
 
         // GameID mit -g Flag einlesen
         int ret;
-        while ((ret = getopt(argc, argv, "g:f::")) != -1) {
+        while ((ret = getopt(argc, argv, "g:p:f::")) != -1) {
                 switch (ret) {
                 case 'g':
                         game_id = optarg;
                         break;
-
+                case 'p':
+                        player_number = atoi(optarg);
+                        break;
                 case 'f':
                         filename = optarg;
                         break;
-
                 default:
                         printHelp();
                         return EXIT_FAILURE;
@@ -52,7 +55,7 @@ int main(int argc, char *argv[]) {
         }
 
         // wenn kein -f Flag, dann nehme standard_filename
-        if (argc < 4) {
+        if (argc < 6) {
                 filename = standard_filename;
         }
 
@@ -63,10 +66,10 @@ int main(int argc, char *argv[]) {
         openconfig(filename);
         printf("Hostname: %s \n" , _config.hostname);
         int fd = connect_to_server();
-    
+
         if(fd == -1)
                 return EXIT_FAILURE;
-    
+
         initConnection(fd, game_id);
 
 
