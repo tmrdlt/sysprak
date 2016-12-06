@@ -12,11 +12,13 @@ OBJ = config.o msg_creator.o string_helper.o performConnection.o connect_to_serv
 SRC = $(OBJ:%.o=%.c)
 HDR = $(OBJ:%.o=%.h)
 
+client: $(OBJ) main.c
+		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) main.c $(LDLIBS)
+		
 play: client
 		./$< -g $(GAMEID)
 
-client: $(OBJ) main.c
-		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) main.c $(LDLIBS)
+
 
 .PHONY: clean
 clean:

@@ -7,7 +7,7 @@
 #include "performConnection.h"
 #include "connect_to_server.h"
 #include "config.h"
-
+#include <sys/wait.h>
 
 
 // Bedienungshinweise
@@ -18,17 +18,22 @@ void printHelp() {
         printf("-p: OPTIONAL, use this to specify the player number.\n");
         printf("-f: OPTIONAL, use this to specify a config file\n");
 }
-int player_number = -1;
-char *game_id;
-char *filename;
-char standard_filename[] = "client.conf";
+
+int player_number = -1;                       //hier kann die -p flag gespeichert werden
+char *game_id;                                //hier kann die -g flag gespeichert werden
+char *filename;                               //hier kann die -f flag gespeichert werden
+char standard_filename[] = "client.conf";     //standard_filename
+
 
 int main(int argc, char *argv[]) {
 
-        pid_t pid;
+
+        
+        pid_t pid = 0;                        //Prozess-ID des Kindprozesses
+        int ret_code = 0;                     //Hilfsvariable für fork()
         filename = standard_filename;
 
-        // GameID mit -g Flag einlesen
+        // flag Verwaltung über getopt
         int ret;
         while ((ret = getopt(argc, argv, "g:p::f::")) != -1) {
                 switch (ret) {
@@ -50,18 +55,14 @@ int main(int argc, char *argv[]) {
 
         // hat die GameId wirklich 13 Stellen?
         if (game_id == NULL || strlen(game_id) != 13) {
-          printHelp();
-          return EXIT_FAILURE;
+                printHelp();
+                return EXIT_FAILURE;
         }
 
 
-
-
-        printf("GameID: %s\n", game_id);
-
         // öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
         openconfig(filename);
-        printf("Hostname: %s \n" , _config.hostname);
+        printf("Hostname: %s \n", _config.hostname);
         int fd = connect_to_server();
 
         if(fd == -1)
@@ -70,22 +71,39 @@ int main(int argc, char *argv[]) {
         initConnection(fd, game_id);
 
 
-		//int shm_id;
-		//char *shmdata;
-		//shm_id = shm_id();
-        switch (pid = fork()) {
-        case -1:
-                printf ("Fehler bei fork()\n");
-                break;
-        case 0:
+        //int shm_id;
+        //char *shmdata;
+        //shm_id = shm_id();
+
+        // Aufspaltung in zwei Prozesse über fork()
+        pid = ret_code = fork();
+        if (ret_code < 0) {
+                perror ("Fehler bei fork().");
+                exit(EXIT_FAILURE);
+        }
+
+        /*
+        *Elternprozess - Thinker
+        */
+        if (pid > 0) {
+                printf("Hi hier ist der Thinker (Elternprozess)\n");
+                //shmdata = address_shm (shm_id);
+
+
+
+                ret_code = waitpid(pid, NULL, 0);
+                if (ret_code < 0) {
+                        perror ("Fehler beim Warten auf Kindprozess.");
+                        exit(EXIT_FAILURE);
+                }
+
+        /*
+        *Kindprozess - Connector
+        */
+        }else{
                 printf("Hi hier ist der Connector (Kindprozess)\n");
                 holdConnection(fd);
-                //shmdata = address_shm (shm_id);
-                break;
-        default:
-                printf("Hi hier ist der Thinker (Elternprozess)\n");
-              //  shmdata = address_shm (shm_id);
-                break;
+                //  shmdata = address_shm (shm_id);
         }
 
 
