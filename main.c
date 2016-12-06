@@ -86,24 +86,27 @@ int main(int argc, char *argv[]) {
     /*
      *Elternprozess - Thinker
      */
-    if (pid > 0) {
+    else if (pid > 0) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
         //shmdata = address_shm (shm_id);
         
         
         
-        ret_code = waitpid(pid, NULL, 0);
+        ret_code = wait( NULL);
         if (ret_code < 0) {
             perror ("Fehler beim Warten auf Kindprozess.");
             exit(EXIT_FAILURE);
         }
-        
+         printf("beende Thinker\n");
         /*
          *Kindprozess - Connector
          */
     }else{
         printf("Hi hier ist der Connector (Kindprozess)\n");
         performConnection(fd, game_id, player_number, -1);
+        
+        printf("beende Connector\n");
+        exit(42);
         //  shmdata = address_shm (shm_id);
     }
     

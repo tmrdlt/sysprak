@@ -77,9 +77,9 @@ void performConnection(int fd, char *game_id, int player_number, int shm_id){
             memmove(in_buffer, line_start, in_buffer_used);
         }
         if(quit){
-            printf("Quit Flag während des Handlings gesetzt ... beende Client");
+            printf("Quit Flag während des Handlings gesetzt ... beende Client\n");
             disconnect(fd);
-            break;
+            return;
         }
     }
 }
@@ -91,8 +91,8 @@ void process_line(char *server_reply, int fd){
     printf("S: %s \n", server_reply);
     
     if (server_reply[0] == '-'){
-         printf("Server sendet Negativnachricht: \n");
-        printf(" %s \n", server_reply);
+        printf("Server sendet Negativnachricht: \n");
+        //printf(" %s \n", server_reply);
         quit = true;
         //Teste ob die Nachricht valide ist
     }else if (server_reply[0] == '+'){
