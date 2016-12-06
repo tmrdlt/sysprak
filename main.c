@@ -18,7 +18,7 @@ void printHelp() {
         printf("-p: REQUIRED, specifies the player number.\n");
         printf("-f: OPTIONAL, use this to specify a config file\n");
 }
-int player_number = 1;
+int player_number = -1;
 char *game_id;
 char *filename;
 char standard_filename[] = "client.conf";
@@ -26,11 +26,11 @@ char standard_filename[] = "client.conf";
 int main(int argc, char *argv[]) {
 
         pid_t pid;
-
-
+        filename = standard_filename;
+        
         // GameID mit -g Flag einlesen
         int ret;
-        while ((ret = getopt(argc, argv, "g:p:f::")) != -1) {
+        while ((ret = getopt(argc, argv, "g:p::f::")) != -1) {
                 switch (ret) {
                 case 'g':
                         game_id = optarg;
@@ -54,10 +54,7 @@ int main(int argc, char *argv[]) {
           return EXIT_FAILURE;
         }
 
-        // wenn kein -f Flag, dann nehme standard_filename
-        if (argc < 6) {
-                filename = standard_filename;
-        }
+
 
 
         printf("GameID: %s\n", game_id);
