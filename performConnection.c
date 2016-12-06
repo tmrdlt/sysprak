@@ -167,7 +167,7 @@ phase handle_prolog(phase_data *data ){
         // Server allows entering Game
     }else if(strstr(data->splited_reply[1], "PLAYING")) {
         if(_prolog_data.playing != 1){
-            if(!strstr(data->splited_reply[2], config.gamekindname)){
+            if(!strstr(data->splited_reply[2], _config.gamekindname)){
                 printf("Falsches Spiel!\n");
                 quit = true;
                 return new_phase;

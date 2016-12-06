@@ -30,7 +30,12 @@ char *create_msg_version(){
 
 char *create_msg_player(char *player_id){
     char id[] = "PLAYER ";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(player_id) + strlen(delimiter)));
+    char *msg;
+    if(player_id)
+        msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(player_id) + strlen(delimiter)));
+    else
+        msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
+    
     if (msg == NULL){
         perror("Es konnte kein Speiecher alloziert werden");
         exit(EXIT_FAILURE);

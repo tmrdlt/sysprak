@@ -19,7 +19,7 @@ void printHelp() {
 }
 char *game_id;
 char *filename;
-char standard_filename[] = "client.conf";
+char standard_filename[] = "/Users/Stephan/Desktop/bashni/bashni/sysprak/client.conf";
 
 int main(int argc, char *argv[]) {
 
@@ -61,12 +61,13 @@ int main(int argc, char *argv[]) {
 
         // öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
         openconfig(filename);
-
+        printf("Hostname: %s \n" , _config.hostname);
         int fd = connect_to_server();
+    
         if(fd == -1)
                 return EXIT_FAILURE;
     
-    initConnection(fd, game_id);
+        initConnection(fd, game_id);
 
 
 		//int shm_id;
