@@ -7,6 +7,7 @@
 //
 
 #include "msg_creator.h"
+#include "string_helper.h"
 
 char *version = "2.3";
 char *delimiter ="\n";
@@ -28,12 +29,18 @@ char *create_msg_version(){
     return msg;
 }
 
-char *create_msg_player(char *player_id){
+char *create_msg_player(int player_id){
     char id[] = "PLAYER ";
     char *msg;
-    if(player_id)
-        msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(player_id) + strlen(delimiter)));
-    else
+    char *id_string;
+    
+    int_to_string(player_id, id_string);
+    
+    if(player_id >= 0){
+        
+        msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(id_string) + strlen(delimiter)));
+
+    }else
         msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
     
     if (msg == NULL){
@@ -42,7 +49,7 @@ char *create_msg_player(char *player_id){
     }
     strcpy(msg, id);
     if(player_id)
-        strcat(msg, player_id);
+        strcat(msg, id_string);
     strcat(msg, delimiter);
     return msg;
 }

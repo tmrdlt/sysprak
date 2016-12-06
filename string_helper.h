@@ -15,9 +15,9 @@
 
 int split(char *string_to_split , char delimiter , char ***dest);
 
-char *float_to_string(float _float);
+void float_to_string(float _float, char*dest);
 
-char *int_to_string(int _int);
+void int_to_string(int _int, char*dest);
 
 float string_to_float(char *string);
 

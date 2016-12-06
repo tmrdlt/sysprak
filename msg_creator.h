@@ -20,7 +20,7 @@ extern char *version;
 
 char *create_msg_version();
 
-char *create_msg_player(char *player_id);
+char *create_msg_player(int player_id);
 
 char *create_msg_id(char *id);
 

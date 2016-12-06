@@ -82,13 +82,8 @@ phase handle_draft(phase_data *data );
  */
 phase run_phase( phase cur_phase, phase_data *data );
 
-void performConnection(int fd, bool is_prolog);
+void performConnection(int fd, char *game_id, int player_number, int shm_id);
 
-void initConnection(int fd, char *game_id);
-                    
-void holdConnection(int fd);
-
-//void handle(char *server_reply, int fd);
 
 void disconnect(int fd);
 

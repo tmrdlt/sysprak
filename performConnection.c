@@ -1,5 +1,6 @@
 
 #include "performConnection.h"
+#include "shared_memory_segment.h"
 #define BUFFERSIZE 1024
 
 char in_buffer[BUFFERSIZE];
@@ -12,6 +13,8 @@ player *opponent_players;
 game *gameparams;
 phase _phase = PROLOG;
 prolog_data _prolog_data;
+int _player_number;
+char *shm_data;
 
 char *_game_id;	
 
@@ -19,31 +22,28 @@ phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
 };
 
-void initConnection(int fd, char *game_id){
-    _game_id = game_id;
-    gameparams = malloc(sizeof(gameparams));
-    if(gameparams==NULL){
-        perror("Memorry Allocation 'Gameparams' failed\n");
-        disconnect(fd);
-        exit(EXIT_FAILURE);
-    }
-    
-    performConnection(fd, true);
-}
-
-void holdConnection(int fd){
-    performConnection(fd, false);
-}
 
 
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int fd, bool is_prolog){
+void performConnection(int fd, char *game_id, int player_number, int shm_id){
+ 
+    shm_data = address_shm (shm_id);
     
-    while((_phase == PROLOG)== is_prolog){
-        printf("Phase: %d\n" , _phase);
-        printf("Prolog: %d\n" , is_prolog);
+    _player_number= player_number;
+    
+    _game_id = game_id;
+    gameparams = malloc(sizeof(gameparams));
+    if(gameparams==NULL){
+        printf("Memorry Allocation 'Gameparams' failed\n");
+        disconnect(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    
+    while(1){
+        
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
             fprintf(stderr, "Line exceeded buffer length!\n");
@@ -70,9 +70,7 @@ void performConnection(int fd, bool is_prolog){
                 *line_end = 0;
                 process_line(line_start, fd);
                 line_start = line_end + 1;
-                if(is_prolog && _phase != PROLOG){
-                    //break;
-                }
+
             }
             /* Shift buffer down so the unprocessed data is at the start */
             in_buffer_used -= (line_start - in_buffer);
@@ -90,7 +88,7 @@ void performConnection(int fd, bool is_prolog){
  * Verarbeite die nächste komplett gelesene Zeile (Eine Nachricht)
  */
 void process_line(char *server_reply, int fd){
-    
+    printf("S: %s \n", server_reply);
     
     if (server_reply[0] == '-'){
          printf("Server sendet Negativnachricht: \n");
@@ -261,7 +259,7 @@ phase handle_prolog(phase_data *data ){
             printf("Bot betritt das Spiel: %s!" , data->splited_reply[1]);
             
             //sende gewünschte Spielernummer (noch leer)
-            char *message = create_msg_player(NULL);
+            char *message = create_msg_player(_player->number);
             if( send_to_gameserver(data->fd, message) < 0){
                 perror("Initialisierung Spieler fehlgeschlagen\n");
                 quit = true;
@@ -287,7 +285,7 @@ phase handle_prolog(phase_data *data ){
         }
         // Nicht erkannte Nachricht - fehler
     }else{
-        printf("Nachricht konnte nicht erkannt werden oder ist für die aktuelle Phase nicht zulässig:\n %s", data->server_reply);
+        printf("Nachricht konnte nicht erkannt werden oder ist für die aktuelle Phase nicht zulässig:\n %s \n", data->server_reply);
         quit = true;
     }
     
@@ -338,9 +336,9 @@ phase handle_course(phase_data *data ){
         printf("Steine setzen\n");
         
         //Gewinner Spiel
-    }else if(strcmp(data->splited_reply[1], "PLAYER0WON")) {
+    }else if(strstr(data->splited_reply[1], "PLAYER0WON")) {
         
-        if (strcmp(data->splited_reply[2], "Yes")){
+        if (strstr(data->splited_reply[2], "Yes")){
             printf("Player 0 gewinnt\n");
         } else{
             printf("Player 0 verliert\n");

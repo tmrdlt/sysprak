@@ -11,22 +11,26 @@
 
 int split(char *string_to_split , char delimiter , char ***dest);
 
-char *float_to_string(float _float);
+void float_to_string(float _float,  char*dest){
+    char str[15];
+    sprintf(str, "%fl", _float);
 
-char *int_to_string(int _int);
+}
+
+
+void int_to_string(int _int,  char*dest){
+    char str[15];
+    sprintf(str, "%d", _int);
+
+}
 
 float string_to_float(char *string){
-    double res;
-    sscanf(string, "%lf" , &res);
-    return res;
+    return atof(string);
 }
 
 
 int string_to_int(char *string){
-    char *end;
-    long tmp = strtol(string, &end, 13);
-    
-    return(int)tmp;
+    return atoi(string);
 }
 
 
