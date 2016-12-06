@@ -76,10 +76,15 @@ void performConnection(int fd, char *game_id, int player_number, int shm_id){
             in_buffer_used -= (line_start - in_buffer);
             memmove(in_buffer, line_start, in_buffer_used);
         }
+        
+        
         if(quit){
             printf("Quit Flag während des Handlings gesetzt ... beende Client\n");
             disconnect(fd);
             return;
+        } else{
+            printf("no Flag\n");
+            
         }
     }
 }
@@ -259,7 +264,7 @@ phase handle_prolog(phase_data *data ){
             printf("Bot betritt das Spiel: %s!" , data->splited_reply[1]);
             
             //sende gewünschte Spielernummer (noch leer)
-            char *message = create_msg_player(_player->number);
+            char *message = create_msg_player(_player_number);
             if( send_to_gameserver(data->fd, message) < 0){
                 perror("Initialisierung Spieler fehlgeschlagen\n");
                 quit = true;

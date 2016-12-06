@@ -34,11 +34,10 @@ char *create_msg_player(int player_id){
     char *msg;
     char *id_string;
     
-    int_to_string(player_id, id_string);
+    
     
     if(player_id >= 0){
-        
-        msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(id_string) + strlen(delimiter)));
+        msg = (char*) malloc(sizeof(char)*(strlen(id) + sizeof(char)*2 + strlen(delimiter)));
 
     }else
         msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
@@ -48,8 +47,12 @@ char *create_msg_player(int player_id){
         exit(EXIT_FAILURE);
     }
     strcpy(msg, id);
-    if(player_id)
+  
+    if(player_id >= 0){
+        int_to_string(player_id, id_string);
         strcat(msg, id_string);
+    }
+    
     strcat(msg, delimiter);
     return msg;
 }

@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
     
     // Aufspaltung in zwei Prozesse über fork()
     pid = ret_code = fork();
+    
     if (ret_code < 0) {
         perror ("Fehler bei fork().");
         exit(EXIT_FAILURE);
@@ -88,11 +89,10 @@ int main(int argc, char *argv[]) {
      */
     else if (pid > 0) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
-        //shmdata = address_shm (shm_id);
-        
-        
-        
-        ret_code = wait( NULL);
+        //shmdata = address_shm (shm_id)
+       
+         ret_code = wait(NULL);
+       // ret_code = wait( NULL);
         if (ret_code < 0) {
             perror ("Fehler beim Warten auf Kindprozess.");
             exit(EXIT_FAILURE);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     }else{
         printf("Hi hier ist der Connector (Kindprozess)\n");
         performConnection(fd, game_id, player_number, -1);
-        
+        sleep(10);
         printf("beende Connector\n");
         exit(42);
         //  shmdata = address_shm (shm_id);
