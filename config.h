@@ -8,14 +8,16 @@
 #include<string.h>
 
 struct{
-    char hostname [30];
+    char *hostname;
     int portnumber;
-    char gamekindname[30];
+    char *gamekindname;
 }config;
 
 void openconfig(char *filename);
 
+void removeSpaces(char* string);
 
+void getmethevalue(char ** string);
 
 
 #endif
