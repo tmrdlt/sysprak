@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-char *version = "2.3";
+extern char *version;
 
 char *create_msg_version();
 
@@ -29,5 +29,7 @@ char *create_msg_okwait();
 char *create_msg_thinking();
 
 char *create_msg_play(char *move);
+
+long strcat_with_realloc(char *dest, char *append);
 
 #endif /* msg_creator_h */

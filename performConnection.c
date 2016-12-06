@@ -398,7 +398,7 @@ int send_to_gameserver(int fd, char *message){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
     }
-    free(message);
+    free(message); 
     
     return res;
 }
