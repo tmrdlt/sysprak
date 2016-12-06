@@ -15,7 +15,7 @@ void printHelp() {
         printf("How to use:\n");
         printf("flags: -g <game_id> -p <player_number> -f <config_filename>\n");
         printf("-g: REQUIRED, game_id has to be 13 digits.\n");
-        printf("-p: REQUIRED, specifies the player number.\n");
+        printf("-p: OPTIONAL, use this to specify the player number.\n");
         printf("-f: OPTIONAL, use this to specify a config file\n");
 }
 int player_number = -1;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
         pid_t pid;
         filename = standard_filename;
-        
+
         // GameID mit -g Flag einlesen
         int ret;
         while ((ret = getopt(argc, argv, "g:p::f::")) != -1) {
