@@ -88,7 +88,7 @@ phase handle_draft(phase_data *data );
  */
 phase run_phase( phase cur_phase, phase_data *data );
 
-void performConnection(int fd,  game_state game_state, int _shm_id);
+void performConnection(int fd,  int _shm_id);
 
 
 void disconnect(int fd);

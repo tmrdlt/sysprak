@@ -27,11 +27,11 @@ phase_func_t* const phase_table[3] = {
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int fd, game_state _game_info, int _shm_id){
+void performConnection(int fd, int _shm_id){
     
     game_shm_id = _shm_id;
-
-    _game_state = &_game_info;
+    
+    _game_state = address_shm(_shm_id);
     
     while(1){
         
@@ -404,10 +404,19 @@ int send_to_gameserver(int fd, char *message){
  */
 void disconnect(int fd){
     
-    dettach_shm(players);
-    delete_shm(_game_state->players_shm_ids);
+    for(int i = 0 ; i < _game_state->player_count ; i++)
+        printf("Player (%d) %s verabschieden! \n" , players[i].number , players[i].player_name);
     
+    
+    printf("Dettach players.\n");
+    dettach_shm(players);
+    int id_shm_player =_game_state->players_shm_ids;
+    printf("Delete players.\n");
+    delete_shm(id_shm_player);
+    
+    printf("Dettach gamestate.\n");
     dettach_shm(_game_state);
+    printf("delete gamestate.\n");
     delete_shm(game_shm_id);
     
     close(fd);

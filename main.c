@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     shmdata->player_number = player_number;
     shmdata->game_name = game_id;
     
-    performConnection(fd, *shmdata, _shm_id);
+    performConnection(fd, _shm_id);
 
     // Aufspaltung in zwei Prozesse über fork()
     pid = ret_code = fork();
