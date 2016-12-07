@@ -18,50 +18,14 @@
 #include "config.h"
 #include "string_helper.h"
 #include "msg_creator.h"
-
-
-typedef struct{
-    char *player_name;
-    int number;
-    int flag;
-} player;
-
-
-typedef struct {
-    char *game_name;
-    int player_number;
-    int player_count;
-    
-    int process_id_thinker;
-    int process_id_connector;
-    
-    char **court;
-    
-    int players_shm_ids;
-    
-}game_state;
+#include "bashni_structs.h"
 
 
 //Enum for States of Client
 typedef enum { PROLOG, COURSE, DRAFT }phase;
 
 //Attributes for handle Methods
-typedef struct {
-    int fd;
-    char *server_reply;
-    char **splited_reply;
-    int count_elements;
-}phase_data;
 
-typedef struct {
-    int version_check;
-    int version_accepted;
-    int playing;
-    int game_name;
-    int you;
-    int total;
-    int players;
-}prolog_data;
 
 //phase table function
 typedef phase phase_func_t( phase_data *data );
