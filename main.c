@@ -125,11 +125,7 @@ int main(int argc, char *argv[]) {
         exit(42);
         //  shmdata = address_shm (shm_id);
     }
-    
 
-
-    dettach_shm(shmdata);
-    delete_shm(_shm_id);
     
     return EXIT_SUCCESS;
     

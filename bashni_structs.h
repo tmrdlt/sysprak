@@ -17,13 +17,8 @@ typedef struct {
 }phase_data;
 
 typedef struct {
-    int version_check;
-    int version_accepted;
-    int playing;
-    int game_name;
-    int you;
-    int total;
-    int players;
+    int set_game_name;
+    int set_players;
 }prolog_data;
 
 typedef struct{
