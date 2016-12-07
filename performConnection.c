@@ -3,20 +3,20 @@
 #include "shared_memory_segment.h"
 #define BUFFERSIZE 1024
 
+
 char in_buffer[BUFFERSIZE];
 size_t in_buffer_used =0;
 
 bool quit = false;
 
 player *_player;
-player *opponent_players;
-game *gameparams;
+
+game_state *_game_state;
 phase _phase = PROLOG;
 prolog_data _prolog_data;
-int _player_number;
-char *shm_data;
+player *players;
 
-char *_game_id;	
+int game_shm_id;
 
 phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
@@ -27,20 +27,11 @@ phase_func_t* const phase_table[3] = {
 /*
  * performConnection holds client connection to Gameserver.
  */
-void performConnection(int fd, char *game_id, int player_number, int shm_id){
- 
-    shm_data = address_shm (shm_id);
+void performConnection(int fd, game_state _game_info, int _shm_id){
     
-    _player_number= player_number;
-    
-    _game_id = game_id;
-    gameparams = malloc(sizeof(gameparams));
-    if(gameparams==NULL){
-        printf("Memorry Allocation 'Gameparams' failed\n");
-        disconnect(fd);
-        exit(EXIT_FAILURE);
-    }
+    game_shm_id = _shm_id;
 
+    _game_state = &_game_info;
     
     while(1){
         
@@ -50,10 +41,9 @@ void performConnection(int fd, char *game_id, int player_number, int shm_id){
             abort();
         }
         
-        ssize_t recv_size = recv(fd, &in_buffer[in_buffer_used], buffer_remain, 0);
-        
-        // = malloc(sizeof(char)*100);
         //empfange neue Nachricht
+        ssize_t recv_size = recv(fd, &in_buffer[in_buffer_used], buffer_remain, 0);
+
         
         if(recv_size < 0){
             perror("Receiving Message failed \n");
@@ -82,9 +72,6 @@ void performConnection(int fd, char *game_id, int player_number, int shm_id){
             printf("Quit Flag während des Handlings gesetzt ... beende Client\n");
             disconnect(fd);
             return;
-        } else{
-            printf("no Flag\n");
-            
         }
     }
 }
@@ -206,10 +193,17 @@ phase handle_prolog(phase_data *data ){
             int players_in_game = string_to_int(data->splited_reply[2]);
             
             //set num players in gameparams
-            opponent_players = (player*)malloc(sizeof(player)*players_in_game);
-            if(opponent_players == NULL) perror("Players cant be allocated");
-            gameparams->player_count = players_in_game;
+
             
+            //shm segment für spieler anlegen
+            int id_player_shm = shm_id(sizeof(player)*players_in_game);
+            
+            _game_state->players_shm_ids = id_player_shm;
+            
+            _game_state->player_count = players_in_game;
+            players = address_shm(id_player_shm);
+            players[_player->number]= *_player;
+           
             if(players_in_game != 1){
                 printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
             }else{
@@ -230,25 +224,20 @@ phase handle_prolog(phase_data *data ){
         //Neuer Spielerim Spiel
     } else if(data->count_elements == 4){
         if(_prolog_data.players ==1){
-            char *end;
-            long nr_l = strtol(data->splited_reply[1], &end, 1);
             
-            int p_nr = (int)nr_l;
-            player *p = (player*) malloc(sizeof(player));
-            p->number = p_nr;
-            p->player_name = data->splited_reply[2];
-            long flag_l = strtol(data->splited_reply[3], &end, 1);
-            int p_flag = (int)flag_l;
-            p->flag = p_flag;
+            int p_nr = string_to_int(data->splited_reply[1]);
+         
+            players[p_nr].number = p_nr;
+            players[p_nr].player_name = data->splited_reply[2];
+            int p_flag = string_to_int(data->splited_reply[3]);
+            players[p_nr].flag = p_flag;
             
+    
             if(p_flag == 1)
                 printf("Spieler (%d) %s ist bereit\n" , p_nr, data->splited_reply[2]);
             else
                 printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, data->splited_reply[2]);
-            
-            *opponent_players = *p;
-            opponent_players++;
-            
+           
             // int tmp = gameparams->player_count;
             
         }else{
@@ -264,7 +253,7 @@ phase handle_prolog(phase_data *data ){
             printf("Bot betritt das Spiel: %s!" , data->splited_reply[1]);
             
             //sende gewünschte Spielernummer (noch leer)
-            char *message = create_msg_player(_player_number);
+            char *message = create_msg_player(_game_state->player_number);
             if( send_to_gameserver(data->fd, message) < 0){
                 perror("Initialisierung Spieler fehlgeschlagen\n");
                 quit = true;
@@ -280,7 +269,7 @@ phase handle_prolog(phase_data *data ){
             printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
             // Sende die Game-ID zum Server
 
-            char *id_msg = create_msg_id(_game_id);
+            char *id_msg = create_msg_id(_game_state->game_name);
             _prolog_data.version_accepted = 1;
             if( send_to_gameserver(data->fd, id_msg) < 0){
                 perror("Fehler bei der Übertragung der Game Id!\n");
@@ -324,6 +313,10 @@ phase handle_course(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "@")) {
         printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //TODO change gameState
+        char **move;
+        split(data->splited_reply[1], '@', &move);
+        
+        
         
         //Server erlaubt berechnung des nächsten Zuges
     }else if(strstr(data->splited_reply[1], "OKTHINKING")) {
@@ -410,9 +403,15 @@ int send_to_gameserver(int fd, char *message){
  *  Disconnect from Gameserver
  */
 void disconnect(int fd){
+    
+    dettach_shm(players);
+    delete_shm(_game_state->players_shm_ids);
+    
+    dettach_shm(_game_state);
+    delete_shm(game_shm_id);
+    
     close(fd);
     free(_player);
-    free(gameparams);
 }
 
 /*int main(int argc, const char * argv[]) {

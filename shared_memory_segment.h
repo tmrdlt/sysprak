@@ -11,7 +11,7 @@
 
 int shm_id (int size);
 
-char *address_shm (int shm_id);
+void *address_shm (int shm_id);
 
 int dettach_shm (void *address);
 

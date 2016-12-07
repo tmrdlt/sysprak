@@ -11,7 +11,7 @@
 int shm_id (int size) {
     
     int shm_id;
-    shm_id = shmget(IPC_PRIVATE, size, IPC_CREAT);
+    shm_id = shmget(IPC_PRIVATE, size, IPC_CREAT| 0777);
     if(shm_id < 0) {
         perror("SHM anlegen fehlgeschlagen! \n");
         return -1;
@@ -20,11 +20,11 @@ int shm_id (int size) {
 }
 
 //Anbinden von SHM
-char *address_shm (int shm_id) {
+void *address_shm (int shm_id) {
     
-    char *address_shm;
-    address_shm = shmat (shm_id, NULL, 0);
-    if(address_shm < 0) {
+    void *address_shm;
+    address_shm = shmat (shm_id, (void*)0, 0);
+    if(address_shm < (void*)0) {
         perror("SHM anbinden fehlgeschlagen! \n");
         return "-1";
     }

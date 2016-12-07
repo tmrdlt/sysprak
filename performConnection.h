@@ -29,12 +29,18 @@ typedef struct{
 
 typedef struct {
     char *game_name;
-    int *player_number;
+    int player_number;
     int player_count;
     
-    pid_t process_id_thinker;
-    pid_t process_id_connector;
-}game;
+    int process_id_thinker;
+    int process_id_connector;
+    
+    char **court;
+    
+    int players_shm_ids;
+    
+}game_state;
+
 
 //Enum for States of Client
 typedef enum { PROLOG, COURSE, DRAFT }phase;
@@ -82,7 +88,7 @@ phase handle_draft(phase_data *data );
  */
 phase run_phase( phase cur_phase, phase_data *data );
 
-void performConnection(int fd, char *game_id, int player_number, int shm_id);
+void performConnection(int fd,  game_state game_state, int _shm_id);
 
 
 void disconnect(int fd);
