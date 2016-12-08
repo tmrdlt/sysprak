@@ -156,30 +156,30 @@ phase handle_prolog(phase_data *data ){
         // Server allows entering Game
     }else if(strstr(data->splited_reply[1], "PLAYING")) {
         if(!strstr(data->splited_reply[2], _config.gamekindname)){
-            printf("Falsches Spiel!\n");
+          printf("Falsches Spiel!\n");
             quit = true;
-            return new_phase;
-            
-        }else{
+           return new_phase;
+        
+         }else{
             printf("Client und Server Spiel-Typ stimmen überein!\n");
-            
-            _prolog_data.set_game_name = 1;
-        }
+        
+        _prolog_data.set_game_name = 1;
+         }
         
     }else if (_prolog_data.set_game_name == 1){
         //ließ game-name
         char *game_name= data->server_reply;
         game_name++;
         game_name++;
-        printf("Bot betritt das Spiel: %s!" , game_name);
-        strcpy(_game_state->game_name , game_name);
+        printf("Bot betritt das Spiel: %s! \n" , game_name);
+         strcpy(_game_state->game_name , game_name);
         
-        //sende gewünschte Spielernummer (noch leer)
+       // sende gewünschte Spielernummer (noch leer)
         char *message = create_msg_player(_game_state->player_number);
-        if( send_to_gameserver(data->fd, message) < 0){
-            perror("Initialisierung Spieler fehlgeschlagen\n");
+         if( send_to_gameserver(data->fd, message) < 0){
+             perror("Initialisierung Spieler fehlgeschlagen\n");
             quit = true;
-        }
+         }
         
         _prolog_data.set_game_name = 0;
         
@@ -231,29 +231,24 @@ phase handle_prolog(phase_data *data ){
         int p_flag = string_to_int(data->splited_reply[data->count_elements-1]);
         int p_nr = string_to_int(p_nr_str);
         
-        players[p_nr].number = p_nr;
-        
-        players[p_nr].flag = p_flag;
-        
-        if (data->count_elements == 4){
-            players[p_nr].player_name = data->splited_reply[2];
-        } else{
-            char name[28];
-            for(int i = 2 ; i < data->count_elements-1; i ++){
-                strcpy(name, data->splited_reply[i]);
-                if (i < data->count_elements-2){
-                   strcpy(name, " ");
-                }
+        char name[28];
+        strcpy(name, data->splited_reply[2]);
+        if (data->count_elements > 4){
+            for(int i = 3 ; i < data->count_elements-1; i ++){
+                strcat(name, " ");
+                
+                strcat(name, data->splited_reply[i]);
+                
             }
-            players[p_nr].player_name = name;
             
+            printf("name palyer: %s \n", name);
         }
-        
+        players[p_nr].player_name = name;
         
         if(p_flag == 1)
-            printf("Spieler (%d) %s ist bereit\n" , p_nr,  players[p_nr].player_name );
+            printf("Spieler (%d) %s ist bereit\n" , p_nr, name );
         else
-            printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, players[p_nr].player_name);
+            printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, name);
         
         
     }else if (strstr(data->server_reply, "Client version accepted")){
@@ -380,14 +375,14 @@ phase run_phase( phase cur_phase, phase_data *data ) {
 int send_to_gameserver(int fd, char *message){
     printf("\n C: %s",message);
     int res =( int)send(fd, message, strlen(message),0);
-    //printf("%d bytes übertragen \n" , res);
+    printf("%d bytes übertragen \n" , res);
     if(res<0){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
     }
     free(message);
     
-    return res;
+    return 2;
 }
 
 /**
@@ -414,39 +409,34 @@ void disconnect(int fd){
     free(_player);
 }
 
-/*int main(int argc, const char * argv[]) {
- // insert code here...
- 
- printf("Hello World\n");
- 
- char *instructionsToCheck[] = {
- "+ MNM Gameserver 12551",
- "+ Client version accepted - please send Game-ID to join",
- "+ PLAYING 12451",
- "+ Mustergame",
- "+ YOU 2 Hans",
- "+ TOTAL 3"
- "+ 0 Peter Nein",
- "+ 1 Paul Ja",
- "+ 3 Helga JA",
- "+ ENDPLAYERS",
- "+ MOVE 2315",
- "+ PIECESLIST",
- "+ w@A1",
- "+ b@C1",
- "+ ENDPIECESLIST",
- "+ OKTHINK",
- "+ GAMEOVER"
- "+ PLAYER0WON Yes",
- "+ PLAYER1WON No",
- "+ PLAYER0WON No",
- "+ PLAYER1WON Yes",
- "+ QUIT"
- };
- for(int i = 0 ; i< 20; i++){
- handle(instructionsToCheck[i], 12);
- }
- 
- return 0;
- }
- */
+int test_msg_pattern(int argc, const char * argv[]) {
+    // insert code here...
+    
+    printf("Hello World\n");
+    
+    char *instructionsToCheck[] = {
+        "+ PLAYING 12451",
+        "+ Muster game xyr",
+        "+ YOU 2 Hans",
+        "+ TOTAL 3"    ,
+        "+ 0 player1 1",
+        "+ 1 player 2 peter 1",
+        "+ 2 player 3 peter 1",
+        "+ ENDPLAYERS"
+    };
+    
+    for(int i = 0 ; i< 8; i++){
+        phase_data _data;
+        _data.server_reply = instructionsToCheck[i];
+        char ** splited;
+        int count = split(instructionsToCheck[i], ' ', &splited);
+        _data.count_elements = count;
+        _data.fd = 0;
+        _data.splited_reply = splited;
+        handle_prolog(&_data);
+        free(splited);
+    }
+    
+    return 0;
+}
+

@@ -54,6 +54,7 @@ phase run_phase( phase cur_phase, phase_data *data );
 
 void performConnection(int fd,  int _shm_id);
 
+int test_msg_pattern();
 
 void disconnect(int fd);
 

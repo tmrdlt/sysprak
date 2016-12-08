@@ -33,7 +33,7 @@ char standard_filename[] = "/Users/Stephan/Desktop/bashni/bashni/sysprak/client.
 
 int main(int argc, char *argv[]) {
     
-    
+   
     
     pid_t pid = 0;                        //Prozess-ID des Kindprozesses
     int ret_code = 0;                     //Hilfsvariable für fork()
@@ -53,7 +53,8 @@ int main(int argc, char *argv[]) {
                 filename = optarg;
                 break;
             default:
-                printHelp();
+    
+                 printHelp();
                 return EXIT_FAILURE;
         }
         
@@ -62,6 +63,7 @@ int main(int argc, char *argv[]) {
     // hat die GameId wirklich 13 Stellen?
     if (game_id == NULL || strlen(game_id) != 13) {
         printHelp();
+        //test_msg_pattern();
         return EXIT_FAILURE;
     }
     
