@@ -7,11 +7,14 @@
 #include<stdio.h>
 #include<string.h>
 
-struct{
+typedef struct{
+    char *gamekindname;
     char *hostname;
     int portnumber;
-    char *gamekindname;
+   
 }config;
+
+extern config _config;
 
 void openconfig(char *filename);
 

@@ -16,10 +16,10 @@ int connect_to_server ()
 
 
 	//Vorbereiten von Socket
-	host = gethostbyname (config.hostname);
+	host = gethostbyname (_config.hostname);
 	ip_host = (struct in_addr **) host -> h_addr_list;
 	address.sin_family = AF_INET;
-	address.sin_port = htons (config.portnumber);
+	address.sin_port = htons (_config.portnumber);
 	address.sin_addr = **ip_host;
 
 	//Verbinden mit Server
