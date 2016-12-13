@@ -45,9 +45,9 @@ typedef struct {
     int process_id_connector;
 
     int flag_thinking;
-
-    char **court;
-
+    
+    field **court;
+    
     int players_shm_ids;
 
 }game_state;

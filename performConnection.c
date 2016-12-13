@@ -292,7 +292,12 @@ phase handle_course(phase_data *data ){
         
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
-        //TODO Flag
+        
+        _game_state->flag_thinking = 1;
+        if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
+            perror("Quittung für Endpieceslist konnte nicht gesendet werden\n!");
+            quit = true;
+        }
         
         printf("Alle Steine gelesen und gesetzt\n");
         //Move Brick
@@ -316,7 +321,7 @@ phase handle_course(phase_data *data ){
         
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
-        //TODO Flag setzen
+        _game_state->flag_thinking = 0;
         printf("Steine setzen\n");
         
         //Gewinner Spiel
@@ -390,23 +395,22 @@ int send_to_gameserver(int fd, char *message){
  */
 void disconnect(int fd){
     
-    for(int i = 0 ; i < _game_state->player_count ; i++)
-        printf("Player (%d) %s verabschieden! \n" , players[i].number , players[i].player_name);
-    
-    
-    printf("Dettach players.\n");
-    dettach_shm(players);
-    int id_shm_player =_game_state->players_shm_ids;
-    printf("Delete players.\n");
-    delete_shm(id_shm_player);
-    
-    printf("Dettach gamestate.\n");
-    dettach_shm(_game_state);
-    printf("delete gamestate.\n");
-    delete_shm(game_shm_id);
-    
-    close(fd);
-    free(_player);
+    if(players != NULL){
+        printf("Dettach players.\n");
+        dettach_shm(players);
+        int id_shm_player =_game_state->players_shm_ids;
+        printf("Delete players.\n");
+        delete_shm(id_shm_player);
+        
+        printf("Dettach gamestate.\n");
+        dettach_shm(_game_state);
+        printf("delete gamestate.\n");
+        delete_shm(game_shm_id);
+    }
+    if(fd > 0)
+        close(fd);
+    if(_player != NULL)
+        free(_player);
 }
 
 int test_msg_pattern(int argc, const char * argv[]) {
