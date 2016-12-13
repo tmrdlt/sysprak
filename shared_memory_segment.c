@@ -38,6 +38,27 @@ int dettach_shm (void *address){
         return -1;}
     return 0;
 }
+<<<<<<< HEAD
+	
+	/*int delete_shm (it shm_id) {
+	struct shmid_ds *buf;
+	if(shmctl (shm_id, IPC_RMID, buf) < 0) {
+        perror("SHM loeschen fehlgeschlagen! \n");
+        return -1;
+	}
+	return 0;
+}
+	
+	//Ablegen von Daten in SHM
+	void write_in_shm(char *address_shm){
+		for (game.player_count=!0 ; game.player_count--)
+			{
+		*address_shm++ = player.player_name;
+		*address_shm++ = player.number;
+		*address_shm++ = player.flag;
+			}
+	}*/
+=======
 
 //Loeschen von SHM
 int delete_shm (int shm_id){
@@ -45,6 +66,7 @@ int delete_shm (int shm_id){
         perror("SHM loeschen fehlgeschlagen! \n");
         return -1;}
     return 0;
+>>>>>>> master
 }
 
 //Ablegen von Daten in SHM
