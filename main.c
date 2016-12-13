@@ -8,6 +8,7 @@
 #include "shared_memory_segment.h"
 #include "performConnection.h"
 #include "connect_to_server.h"
+#include "thinker.h"
 #include "config.h"
 #include <sys/wait.h>
 #include<sys/types.h>
@@ -90,10 +91,10 @@ int main(int argc, char *argv[]) {
     performConnection(fd, _shm_id);
     
     //Anlegen von namenlosen Pipe
-    int fd[2];
+    int feld[2];
     char puffer[PIPE_BUF];
     
-    if (pipe (fd) < 0) {
+    if (pipe (feld) < 0) {
       perror ("pipe");
       exit (EXIT_FAILURE);
    }
@@ -117,9 +118,9 @@ int main(int argc, char *argv[]) {
         signal(SIGUSR1, think);
         
         //Leseseite schliessen
-        close (fd[0]);
+        close (feld[0]);
         // In die Schreibseite der Pipe schreiben 
-        write (fd[1], puffer, PIPE_BUF);
+        write (feld[1], puffer, PIPE_BUF);
 
          ret_code = wait(NULL);
 
@@ -137,16 +138,15 @@ int main(int argc, char *argv[]) {
        // shmdata->process_id_connector = pid;
 
        // sleep(10);
-       if (_game_state.flag_thinking == 1) { 
-	   		if (kill(getppid(), SIGUSR1) < 0) {
+       if (kill(getppid(), SIGUSR1) < 0) {
        		perror ("Fehler bei Senden vom Signal).");
         	exit(EXIT_FAILURE);}
-	   }      
+	         
        
         //Schreibeseite schliessen
-        close (fd[1]);
+        close (feld[1]);
         // Leseseite der Pipe auslesen
-        read (fd[0], puffer, PIPE_BUF);
+        read (feld[0], puffer, PIPE_BUF);
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");

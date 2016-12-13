@@ -292,7 +292,12 @@ phase handle_course(phase_data *data ){
         
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
-        //TODO Flag
+        
+        _game_state->flag_thinking = 1;
+        if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
+            perror("Quittung für Endpieceslist konnte nicht gesendet werden\n!");
+            quit = true;
+        }
         
         printf("Alle Steine gelesen und gesetzt\n");
         //Move Brick
@@ -316,7 +321,7 @@ phase handle_course(phase_data *data ){
         
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
-        //TODO Flag setzen
+        _game_state->flag_thinking = 0;
         printf("Steine setzen\n");
         
         //Gewinner Spiel
