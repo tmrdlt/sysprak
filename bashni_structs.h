@@ -9,6 +9,8 @@
 #ifndef bashni_structs_h
 #define bashni_structs_h
 
+#define COURT_SIZE 8
+
 typedef struct {
     int fd;
     char *server_reply;
@@ -27,6 +29,10 @@ typedef struct{
     int flag;
 } player;
 
+typedef struct{
+    char field_id[2];
+    char *towers;
+} field;
 
 typedef struct {
     char *game_name;
