@@ -10,6 +10,8 @@
 #define bashni_structs_h
 
 #define COURT_SIZE 8
+#define FIELD_ID_SIZE 3
+#define TOWERS_SIZE 25
 
 typedef struct {
     int fd;
@@ -30,24 +32,24 @@ typedef struct{
 } player;
 
 typedef struct{
-    char field_id[2];
-    char *towers;
+    char field_id[FIELD_ID_SIZE];
+    char towers[TOWERS_SIZE];
 } field;
 
 typedef struct {
     char *game_name;
     int player_number;
     int player_count;
-    
+
     int process_id_thinker;
     int process_id_connector;
-    
+
     int flag_thinking;
-    
+
     char **court;
-    
+
     int players_shm_ids;
-    
+
 }game_state;
 
 #endif /* bashni_structs_h */

@@ -1,53 +1,31 @@
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "court_helper.h"
 
 
-#define COURT_SIZE 8
 
-typedef struct {
-        char *field_id;
-        char *towers;
-} field;
+// struct field besetzen: mit den field_ids (A8, B8, usw.) und mit . _ . _ usw.
+void set_court(field court[COURT_SIZE][COURT_SIZE], int size) {
 
-
-void int_to_string(int _int,  char*dest){
-        char str[15];
-        sprintf(str, "%d", _int);
-        strcpy(dest, str);
-
-}
-
-void set_court(field spielfeld[COURT_SIZE][COURT_SIZE], int size) {
-        for (int i = 0; i < size; i++) {
-
-                for (int j = 0; j < size; j++) {
-                        char feld[3];
-                        feld[0] = j+65;
-                        feld[1] = 56-i;
-                        feld[2] = '\0';
-
-                        spielfeld[i][j].field_id = feld;
-                        printf("%s\n", spielfeld[i][j].field_id);
-                        //  int int_field_id = 8-i;
-                        //  char _int_field_id[1];
-                        //  int_to_string(int_field_id, _int_field_id);
-
-                        //  char char_field_id = j+65;
-                        //  char * _field_id = &char_field_id;
-                        //  strcat(_field_id, _int_field_id);
-                        //  printf("%s\n", _field_id);
+        // field_ids setzen
+        for (int i=0; i<size; i++) {
+                for (int j=0; j<size; j++) {
+                        char k = j+65;  // 0 zu 'A', 1 zu 'B' usw.
+                        char l = 56-i;  // 0 zu '8', 1 zu '7' usw.
+                        char feld[3] = {k, l, '\0'};
+                        strcpy(court[i][j].field_id, feld);
                 }
         }
-
+        // ._._ setzten
         for(int i=0; i<(size/2); i++) {
                 for(int j=0; j<(size/2); j++) {
-                        spielfeld[2*i][2*j].towers = ".";
-                        spielfeld[2*i][2*j+1].towers = "_";
-                        spielfeld[2*i+1][(2*j)+1].towers = ".";
-                        spielfeld[2*i+1][2*j].towers = "_";
+                        court[2*i][2*j].towers[0] = '.';
+                        court[2*i][2*j].towers[1] = '\0';
+                        court[2*i][2*j+1].towers[0] = '_';
+                        court[2*i][2*j+1].towers[1] = '\0';
+                        court[2*i+1][(2*j)+1].towers[0] = '.';
+                        court[2*i+1][(2*j)+1].towers[1] = '\0';
+                        court[2*i+1][2*j].towers[0] = '_';
+                        court[2*i+1][2*j].towers[1] = '\0';
                 }
         }
 
@@ -55,58 +33,87 @@ void set_court(field spielfeld[COURT_SIZE][COURT_SIZE], int size) {
 
 
 
-void set_draft(field spielfeld[COURT_SIZE][COURT_SIZE], int size, char* draft) {
-        int i = 56 - draft[3];
-        int j = draft[2] - 65;
-        char tmp[2] = {draft[0], '\0'};
-        printf("%d, %d\n", i,j );
+void set_draft(field court[COURT_SIZE][COURT_SIZE], int size, char* draft) {
+        int i = 56-draft[3];  // '8' zu 0, '7' zu 1, usw.
+        int j = draft[2]-65;  // 'A' zu 0, 'B' zu 1, usw.
+        char zug[2] = {draft[0], '\0'};
 
-
-
-       spielfeld[i][j].towers = tmp;
-       printf("%s\n", spielfeld[i][j].towers );
-
-
-
-
+        // if noch kein stein gesetzt
+        if (court[i][j].towers[0] == '.'|| court[i][j].towers[0] == '_') {
+                //reinkopieren
+                strcpy(court[i][j].towers, zug);
+        } else {
+                //anhängen
+                strcat(court[i][j].towers, zug);
+        }
 }
 
 
-void print_court(field spielfeld[COURT_SIZE][COURT_SIZE], int size) {
+void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
+
         printf("   A B C D E F G H\n");
         printf("  +---------------+\n");
         for(int i=0; i<size; i++) {
                 printf("%d| ", 8-i);
                 for(int j=0; j<size; j++) {
-                        printf("%s ", spielfeld[i][j].towers);
+                        int len = strlen(court[i][j].towers);
+                        printf("%c ", court[i][j].towers[len-1]);
 
                 }
                 printf("|%d\n", 8-i);
-
-
         }
         printf("  +---------------+\n");
         printf("   A B C D E F G H\n");
 
+        printf("\nWhite Towers\n");
+        printf("============\n");
+        for(int i=0; i<size; i++) {
+                for(int j=0; j<size; j++) {
+                        int len = strlen(court[i][j].towers);
+                        if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
+                                printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
+                        }
+                }
+        }
+
+        printf("\nBlack Towers\n");
+        printf("============\n");
+        for(int i=0; i<size; i++) {
+                for(int j=0; j<size; j++) {
+                        int len = strlen(court[i][j].towers);
+                        if (court[i][j].towers[len-1] == 'B' || court[i][j].towers[len-1] == 'b') {
+                                printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
+                        }
+                }
+        }
 }
+
+
+
 
 
 int main() {
 
 
-        field spielfeld[COURT_SIZE][COURT_SIZE];
+        field court[COURT_SIZE][COURT_SIZE];
 
-        set_court(spielfeld, COURT_SIZE);
+        set_court(court, COURT_SIZE);
         char draft[] = "W@B6";
-        char draft1[] = "b@F8";
-        char draft2[] = "B@D8";
-        char draft3[] = "w@B8";
-        set_draft(spielfeld, COURT_SIZE, draft);
-        print_court(spielfeld, COURT_SIZE);
+        char draft1[] = "w@B6";
+        char draft2[] = "B@D6";
+        char draft3[] = "b@D6";
+        set_draft(court, COURT_SIZE, draft);
+        set_draft(court, COURT_SIZE, draft1);
+        set_draft(court, COURT_SIZE, draft2);
+        set_draft(court, COURT_SIZE, draft3);
+        print_court(court, COURT_SIZE);
 
 
 
-                        //      printf("%s\n", spielfeld[i][j].field_id);
+
+
+
+        //      printf("%s\n", court[i][j].field_id);
 
 
 
