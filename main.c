@@ -13,6 +13,7 @@
 #include<sys/types.h>
 #include<sys/ipc.h>
 #include<sys/shm.h>
+#include<signal.h>
 
 #define SIZE_COURT 8
 
@@ -113,13 +114,12 @@ int main(int argc, char *argv[]) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
         //shmdata->process_id_thinker = pid;
         
+        signal(SIGUSR1, think);
+        
         //Leseseite schliessen
         close (fd[0]);
         // In die Schreibseite der Pipe schreiben 
-        if ((write (fd[1], puffer, PIPE_BUF)) != n) {
-         perror ("write");
-         exit (EXIT_FAILURE);
-        }
+        write (fd[1], puffer, PIPE_BUF);
 
          ret_code = wait(NULL);
 
@@ -137,11 +137,16 @@ int main(int argc, char *argv[]) {
        // shmdata->process_id_connector = pid;
 
        // sleep(10);
+       if (_game_state.flag_thinking == 1) { 
+	   		if (kill(getppid(), SIGUSR1) < 0) {
+       		perror ("Fehler bei Senden vom Signal).");
+        	exit(EXIT_FAILURE);}
+	   }      
        
         //Schreibeseite schliessen
         close (fd[1]);
         // Leseseite der Pipe auslesen
-        n = read (fd[0], puffer, PIPE_BUF);
+        read (fd[0], puffer, PIPE_BUF);
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");
