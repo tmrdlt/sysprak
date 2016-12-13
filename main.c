@@ -138,9 +138,14 @@ int main(int argc, char *argv[]) {
        // shmdata->process_id_connector = pid;
 
        // sleep(10);
-       if (kill(getppid(), SIGUSR1) < 0) {
+       game_state *_game_state = address_shm(_shm_id);
+    
+    	if(_game_state->flag_thinking==1){
+			if (kill(getppid(), SIGUSR1) < 0) {
        		perror ("Fehler bei Senden vom Signal).");
         	exit(EXIT_FAILURE);}
+		}
+       		
 	         
        
         //Schreibeseite schliessen
