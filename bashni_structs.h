@@ -9,6 +9,8 @@
 #ifndef bashni_structs_h
 #define bashni_structs_h
 
+#define COURT_SIZE 8
+
 typedef struct {
     int fd;
     char *server_reply;
