@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include<limits.h>
 #include "shared_memory_segment.h"
 #include "performConnection.h"
 #include "connect_to_server.h"
@@ -86,6 +87,15 @@ int main(int argc, char *argv[]) {
     shmdata->game_name = game_id;
 
     performConnection(fd, _shm_id);
+    
+    //Anlegen von namenlosen Pipe
+    int fd[2];
+    char puffer[PIPE_BUF];
+    
+    if (pipe (fd) < 0) {
+      perror ("pipe");
+      exit (EXIT_FAILURE);
+   }
 
     // Aufspaltung in zwei Prozesse über fork()
     pid = ret_code = fork();
@@ -102,6 +112,14 @@ int main(int argc, char *argv[]) {
     else if (pid > 0) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
         //shmdata->process_id_thinker = pid;
+        
+        //Leseseite schliessen
+        close (fd[0]);
+        // In die Schreibseite der Pipe schreiben 
+        if ((write (fd[1], puffer, PIPE_BUF)) != n) {
+         perror ("write");
+         exit (EXIT_FAILURE);
+        }
 
          ret_code = wait(NULL);
 
@@ -119,6 +137,11 @@ int main(int argc, char *argv[]) {
        // shmdata->process_id_connector = pid;
 
        // sleep(10);
+       
+        //Schreibeseite schliessen
+        close (fd[1]);
+        // Leseseite der Pipe auslesen
+        n = read (fd[0], puffer, PIPE_BUF);
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");
