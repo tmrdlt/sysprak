@@ -27,6 +27,10 @@ typedef struct{
     int flag;
 } player;
 
+typedef struct{
+    char field_id[2];
+    char *towers;
+} field;
 
 typedef struct {
     char *game_name;
