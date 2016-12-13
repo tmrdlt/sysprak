@@ -10,9 +10,9 @@
 #include <time.h>
 
 
-int main(int argc, char *argv[]) {
-    test_thinker();
-}
+//int main(int argc, char *argv[]) {
+//    test_thinker();
+//}
 
 void think(int id_seg_gameparams){
     game_state *_game_state = address_shm(id_seg_gameparams);
