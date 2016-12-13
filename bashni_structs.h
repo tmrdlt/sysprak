@@ -30,7 +30,7 @@ typedef struct{
 } player;
 
 typedef struct{
-    char field_id[2];
+    char *field_id;
     char *towers;
 } field;
 
@@ -44,7 +44,7 @@ typedef struct {
     
     int flag_thinking;
     
-    char **court;
+    field **court;
     
     int players_shm_ids;
     

@@ -7,11 +7,12 @@
 //
 
 #include "thinker.h"
-#include <stdbool.h>
-//
-//int main(int argc, char *argv[]) {
-//    test_thinker();
-//}
+#include <time.h>
+
+
+int main(int argc, char *argv[]) {
+    test_thinker();
+}
 
 void think(int id_seg_gameparams){
     game_state *_game_state = address_shm(id_seg_gameparams);
@@ -24,168 +25,251 @@ void think(int id_seg_gameparams){
     }
 }
 
-char *think_nxt_move(char court[8][8], int time_in_s, int max_size, char my_color){
+void think_nxt_move(field **court, int time_in_s, int max_size, char my_color){
     
-    print_court(court, 8);
+    print_court(court, max_size);
     
-    int _timer;
+    char move[5];
+    
+    
+    
+    if(my_color == 'w'){
+        think_nxt_move_white(court, time_in_s, max_size, my_color, move);
+    }else{
+        think_nxt_move_black(court, time_in_s, max_size, my_color, move);
+        //printf("Error My Color must be w or b ... not %c \n" , my_color );
+    }
+    
+    printf("MOVE: %s\n",move);
+}
+
+
+
+void think_nxt_move_white(field **court , int time_in_s, int max_size,char my_color, char *move){
     
     bool best_move_found = false;
     
-    int i_tmp = -1;
-    int i_old =-1, j_old= -1;
-    int j_tmp = -1;
+    char *old_field ="00"; char *new_field="00";
     
-    while(_timer < time_in_s && !best_move_found){
+    for(int i = max_size-1 ; i >= 0 ; i --){
         
-        if(my_color == 'w'){
-         
-            for(int i = max_size-1 ; i >= 0 ; i --){
-                
-                for(int j = 0 ; j < max_size ; j ++){
-                    
-                    
-                    if(court[i][j] == my_color){
-                        
-                        if (i < max_size-1 && j > 0){
-                            if(court[i+1][j-1] == '.'){
-                                if (i_tmp == -1){
-                                    printf("tmp match \n");
-                                    i_tmp = i+1;
-                                    j_tmp = j-1;
-                                    i_old = i;
-                                    j_old = j;
-                                }else if(court[i+1][j-1] == 'b' && i+2 >= 0 && j-2 < max_size-1){
-                                    if(court[i+2][j-2] == '.'){
-                                        printf("schlage b! \n");
-                                        i_tmp = i+2;
-                                        j_tmp = j-2;
-                                        i_old = i;
-                                        j_old = j;
-                                        best_move_found = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }else if(i < max_size-1 && j < max_size-1){
-                            if(court[i+1][j+1] == '.'){
-                                printf("tmp match \n");
-                                if (i_tmp == -1){
-                                    i_tmp = i+1;
-                                    j_tmp = j+1;
-                                    i_old = i;
-                                    j_old = j;
-                                }
-                            }else if(court[i+1][j+1] == 'b' && i+2 < max_size-1 && j+2 < max_size-1){
-                                if(court[i+2][j+2] == '.'){
-                                    printf("schlage b! \n");
-                                    i_tmp = i+2;
-                                    j_tmp = j+2;
-                                    i_old = i;
-                                    j_old = j;
-                                    best_move_found = true;
-                                    break;
-                                }
-                            }
+        for(int j = 0 ; j < max_size ; j ++){
+            
+            
+            // check "links" nach "vorne"
+            int tmp=(int) strlen(court[i][j].towers)-1;
+            if(char_cmp_ignore_case(court[i][j].towers[tmp] , my_color)){
+                printf("%c is mycolor %c\n" ,court[i][j].towers[tmp],my_color);
+                if (i < max_size-1 && j > 0){
+                    if(strstr(court[i+1][j-1].towers,"_")){
+                        if (!strcmp(old_field , "00")){
+                            printf("tmp match \n");
+                            
+                            old_field = court[i][j].field_id;
+                            new_field= court[i+1][j-1].field_id;
+                            
                         }
-                        
+                    }else if(char_cmp_ignore_case(court[i+1][j-1].towers[strlen(court[i+1][j-1].towers)-1] , 'b')
+                             && i+2 < max_size && j-2 >= 0){
+                        if(strstr(court[i+2][j-2].towers,"_")){
+                            printf("schlage b! \n");
+                            
+                            old_field = court[i][j].field_id;
+                            new_field= court[i+2][j-2].field_id;
+                            
+                            best_move_found = true;
+                            break;
+                        }
                     }
                 }
-                if (best_move_found)break;
-            }
             
-        } else if(my_color == 'b'){
-            
-            for(int i = 0 ; i < max_size ; i ++){
-                
-                for(int j = 0 ; j < max_size ; j ++){
-                    
-                    
-                    if(court[i][j] == my_color){
+            // check "rechts" nach "vorne"
+            else if(i < max_size-1 && j < max_size-1){
+                if(strstr(court[i+1][j+1].towers,"_")){
+                    if (!strcmp(old_field , "00")){
+                        printf("tmp match \n");
                         
-                        if (i > 0 && j > 0){
-                            if(court[i-1][j-1] == '.'){
-                                if (i_tmp == -1){
-                                    printf("tmp match \n");
-                                    i_tmp = i-1;
-                                    j_tmp = j-1;
-                                    i_old = i;
-                                    j_old = j;
-                                }else if(court[i-1][j-1] == 'b' && i-2 >= 0 && j-2 < max_size-1){
-                                    if(court[i+2][j-2] == '.'){
-                                        printf("schlage b! \n");
-                                        i_tmp = i-2;
-                                        j_tmp = j-2;
-                                        i_old = i;
-                                        j_old = j;
-                                        best_move_found = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }else if(i > 0 && j < max_size-1){
-                            if(court[i-1][j+1] == '.'){
-                                printf("tmp match \n");
-                                if (i_tmp == -1){
-                                    i_tmp = i-1;
-                                    j_tmp = j+1;
-                                    i_old = i;
-                                    j_old = j;
-                                }
-                            }else if(court[i-1][j+1] == 'w' && i-2 >= 0 && j+2 < max_size-1){
-                                if(court[i-2][j+2] == '.'){
-                                    printf("schlage b! \n");
-                                    i_tmp = i-2;
-                                    j_tmp = j+2;
-                                    i_old = i;
-                                    j_old = j;
-                                    best_move_found = true;
-                                    break;
-                                }
-                            }
-                        }
+                        old_field = court[i][j].field_id;
+                        new_field= court[i+1][j+1].field_id;
+                    }
+                }else if(char_cmp_ignore_case(court[i+1][j+1].towers[strlen(court[i+1][j+1].towers)-1] , 'b')
+                         && i+2 < max_size && j+2 < max_size){
+                    if(strstr(court[i+2][j+2].towers,"_")){
+                        printf("schlage b! \n");
                         
+                        old_field = court[i][j].field_id;
+                        new_field= court[i+2][j+2].field_id;
                         
-                        
+                        best_move_found = true;
+                        break;
                     }
                 }
-                if (best_move_found)break;
+                
             }
-        }else{
-            printf("Error My Color must be w or b ... not %c \n" , my_color );
+            // check "links" nach "hinten"
+            else if (i > 0 && j > 0){
+                if(strstr(court[i-1][j-1].towers,"_")){
+                    if (!strcmp(old_field , "00")){
+                        printf("tmp match \n");
+                        
+                        old_field= court[i][j].field_id;
+                        new_field= court[i-1][j-1].field_id;
+                    }
+                }else if(char_cmp_ignore_case(court[i-1][j-1].towers[strlen(court[i-1][j-1].towers)-1] , 'b')
+                         && i+2 >= 0 &&j-2 >= 0 ){
+                    if(strstr(court[i-2][j-2].towers,"_")){
+                        printf("schlage b! \n");
+                        old_field = court[i][j].field_id;
+                        new_field= court[i-2][j-2].field_id;
+                        
+                        best_move_found = true;
+                        break;
+                    }
+                }
+                
+                
+            }
+            // check "rechts" nach "hinten"
+            else if(i>0 && j < max_size-1){
+                if(strstr(court[i-1][j+1].towers,"_")){
+                    if (!strcmp(old_field , "00")){
+                        printf("tmp match \n");
+                        old_field= court[i][j].field_id;
+                        new_field= court[i-1][j+1].field_id;
+                    }
+                    
+                }else if(char_cmp_ignore_case(court[i-1][j+1].towers[strlen(court[i-1][j+1].towers)-1] , 'b')
+                         && i+2 >= 0 && j+2 < max_size){
+                    if(strstr(court[i-2][j+2].towers,"_")){
+                        printf("schlage b! \n");
+                        old_field = court[i][j].field_id;
+                        new_field= court[i-2][j+2].field_id;
+                        
+                        best_move_found = true;
+                        break;
+                    }
+                }
+            }
+            
+            
+            }
         }
-        best_move_found = true;
+        if (best_move_found)break;
     }
     
-    printf("MOVE: (%i,%i) -> (%i,%i)\n", i_old,j_old,i_tmp,j_tmp);
+    //  if (best_move_found)break;
+    build_move(old_field, new_field, move);
+}
+
+void think_nxt_move_black(field **court , int time_in_s, int max_size_court,char my_color, char *move){
     
-    return "asfa";
 }
 
 
 void test_thinker(){
     
-    char court[8][8];
+    field **court = (field **) malloc(sizeof(field)*8*8);
     
     int start = 0;
     
+    int count_b=12, count_w=12, count_dot = 12;
+    
+    srand(time(NULL));
+    
+    
     for(int i = 0 ; i < 8 ; i++){
         int next = start;
+        
+        court[i] = (field*) malloc(sizeof(field)*8);
+        
         for (int j = 0 ; j < 8 ; j ++){
             
-            if(i < 3 && j == next){
-                court[i][j] = 'w';
+            char c =j+65;
+            
+            char b = i+49;
+            char *tmp = malloc(sizeof(char)*2);
+            tmp[0] = c;
+            tmp[1] = b;
+            
+            court[i][j].field_id= tmp;
+            
+            if(j == next){
+                if(count_w >0 && count_b>0 && count_dot >0){
+                    int r = rand()%3;
+                    switch (r) {
+                        case 1:
+                            
+                            if(rand() % 3 == 0)
+                                court[i][j].towers = "W\0";
+                            else
+                                court[i][j].towers = "W\0";
+                            
+                            count_w--;
+                            break;
+                        case 2:
+                            if(rand() % 3 == 0)
+                                court[i][j].towers = "B\0";
+                            else
+                                court[i][j].towers = "b\0";
+                            count_b--;
+                            break;
+                        default:
+                            court[i][j].towers = "_\0";
+                            count_dot--;
+                            break;
+                    }
+                }else if(count_w >0 && count_b>0){
+                    int r = rand()%2;
+                    switch (r) {
+                        case 1:
+                            court[i][j].towers = "w\0";
+                            count_w--;
+                            break;
+                        default:
+                            court[i][j].towers = "b\0";
+                            count_b--;
+                            break;
+                    }
+                    
+                }else if(count_w >0 && count_dot>0){
+                    int r = rand()%2;
+                    switch (r) {
+                        case 1:
+                            court[i][j].towers = "w\0";
+                            count_w--;
+                            break;
+                        default:
+                            court[i][j].towers = "_\0";
+                            count_b--;
+                            break;
+                    }
+                }else if(count_b >0 && count_dot>0){
+                    int r = rand()%2;
+                    switch (r) {
+                        case 1:
+                            court[i][j].towers = "_\0";
+                            count_w--;
+                            break;
+                        default:
+                            court[i][j].towers = "b\0";
+                            count_b--;
+                            break;
+                    }
+                }else{
+                    if(count_w > 0)
+                        court[i][j].towers = "w\0";
+                    else if(count_b > 0)
+                        court[i][j].towers = "b\0";
+                    else if(count_dot > 0)
+                        court[i][j].towers = "_\0";
+                }
+                
                 next += 2;
                 
-            } else if(i > 4 && j == next){
-                court[i][j] = 'b';
-                next += 2;
-            } else if(j == next){
-                court[i][j] = '.';
-                next += 2;
             } else{
-                court[i][j] = '-';
+                court[i][j].towers = ".\0";
             }
+            
             
         }
         if (start == 0){
@@ -195,28 +279,38 @@ void test_thinker(){
         }
         
     }
-    think_nxt_move(court, 2000, 8 ,'b');
+    think_nxt_move(court, 2000, 8 ,'w');
+    for(int i = 0 ; i < 8 ; i++){
+        free(court[i]->field_id);
+        free(court[i]);
+    }
+    free(court);
 }
 
-void print_court(char court[8][8], int size){
-    for(int i = -1 ; i < 8 ; i++){
-        if(i != -1)
-            printf("%d| ",i);
-        else
-            printf("   ");
+void print_court(field **_court, int size){
+    for(int i = 0 ; i < 8 ; i++){
         for (int j = 0 ; j < 8 ; j ++){
-            if(i == -1){
-                printf("%d ",j);
-                
-            }else{
-                printf("%c", court[i][j]);
-                if(j < size-1){
-                    printf(" ");
-                }
+            printf("%s", _court[i][j].field_id);
+            printf(":");
+            printf("%s", _court[i][j].towers);
+            if(j < size-1){
+                printf(" ");
             }
         }
-        printf(" |\n");
+        printf("\n");
     }
+}
+
+void build_move(char *old_pos, char *new_pos, char *result){
+    char tmp [strlen(old_pos) + strlen(new_pos) +1];
+    strcpy(tmp, old_pos);
+    strcat(tmp, ":");
+    strcat(tmp, new_pos);
+    strcpy(result,tmp);
+}
+
+bool char_cmp_ignore_case(char char_1 , char char_2){
+    return (char_1 == char_2 || char_1  == char_2+32 || char_1 == char_2 -32);
 }
 
 
