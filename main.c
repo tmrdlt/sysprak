@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
                 filename = optarg;
                 break;
             default:
-    
+
                  printHelp();
                 return EXIT_FAILURE;
         }
@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
     shmdata->player_number = player_number;
     shmdata->game_name = game_id;
 
-   
-    
+
+
     //Anlegen von namenlosen Pipe
     int feld[2];
 if (pipe (feld) < 0) {
@@ -109,23 +109,20 @@ if (pipe (feld) < 0) {
     else if (pid > 0) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
         //shmdata->process_id_thinker = pid;
-    
+
         //Leseseite schliessen
         close (feld[0]);
-        
-        // In die Schreibseite der Pipe schreiben 
+
+        // In die Schreibseite der Pipe schreiben
         //write (feld[1], puffer, PIPE_BUF);
-        
+
         fd = feld[1];
-        
+
         signal(SIGUSR1, think);
-        
+
         ret_code = wait(NULL);
 
-        if (ret_code < 0) {
-            perror ("Fehler beim Warten auf Kindprozess.");
-            exit(EXIT_FAILURE);
-        }
+        
         printf("beende Thinker\n");
         //printf("Id thinker %d \n" , shmdata->process_id_thinker);
         /*
@@ -138,21 +135,21 @@ if (pipe (feld) < 0) {
 
        // sleep(10);
         int _fd = connect_to_server();
-        
+
         if(_fd == -1)
             return EXIT_FAILURE;
-        
+
         close (feld[1]);
-        
+
         fd_pipe_thinker = feld[0];
-    
+
         performConnection(_fd, _shm_id);
 
-	         
-       
+
+
         //Schreibeseite schliessen
-        
-       
+
+
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");
