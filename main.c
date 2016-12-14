@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
    
     
     //Anlegen von namenlosen Pipe
-    int feld[2];
+    int feld[2] , n;
     char puffer[PIPE_BUF];
     
     if (pipe (feld) < 0) {
@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
     
         //Leseseite schliessen
         close (feld[0]);
+        
         // In die Schreibseite der Pipe schreiben 
         //write (feld[1], puffer, PIPE_BUF);
         
@@ -142,22 +143,16 @@ int main(int argc, char *argv[]) {
         
         if(_fd == -1)
             return EXIT_FAILURE;
-       game_state *_game_state = address_shm(_shm_id);
+    
         performConnection(_fd, _shm_id);
-        
-        
-    	if(_game_state->flag_thinking==1){
-			if (kill(getppid(), SIGUSR1) < 0) {
-       		perror ("Fehler bei Senden vom Signal).");
-        	exit(EXIT_FAILURE);}
-		}
-       		
 	         
        
         //Schreibeseite schliessen
         close (feld[1]);
         // Leseseite der Pipe auslesen
-        read (feld[0], puffer, PIPE_BUF);
+        if (read (feld[0], puffer, PIPE_BUF) != n) {
+        	perror ("Fehler beim Lesen von der Pipe.");
+		}
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");
