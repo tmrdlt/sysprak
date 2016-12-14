@@ -13,3 +13,6 @@ void set_court(field court[COURT_SIZE][COURT_SIZE], int size);
 void set_draft(field court[COURT_SIZE][COURT_SIZE], int size, char* draft);
 
 void print_court(field court[COURT_SIZE][COURT_SIZE], int size);
+
+
+#endif /* court_helper_h */
