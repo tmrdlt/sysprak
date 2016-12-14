@@ -288,19 +288,19 @@ void test_thinker(){
 //    }
 }
 
-void print_court(field **_court, int size){
-    for(int i = 0 ; i < 8 ; i++){
-        for (int j = 0 ; j < 8 ; j ++){
-            printf("%s", _court[i][j].field_id);
-            printf(":");
-            printf("%s", _court[i][j].towers);
-            if(j < size-1){
-                printf(" ");
-            }
-        }
-        printf("\n");
-    }
-}
+//void print_court(field **_court, int size){
+//    for(int i = 0 ; i < 8 ; i++){
+//        for (int j = 0 ; j < 8 ; j ++){
+//            printf("%s", _court[i][j].field_id);
+//            printf(":");
+//            printf("%s", _court[i][j].towers);
+//            if(j < size-1){
+//                printf(" ");
+//            }
+//        }
+//        printf("\n");
+//    }
+//}
 
 void build_move(char *old_pos, char *new_pos, char *result){
     char tmp [strlen(old_pos) + strlen(new_pos) +1];

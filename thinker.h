@@ -31,6 +31,6 @@ void think(int id_seg_gameparams);
 
 void test_thinker();
 
-void print_court(field **court, int size);
+//void print_court(field **court, int size);
 
 #endif /* thinker_h */

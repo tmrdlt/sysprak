@@ -92,7 +92,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
 
 
 
-int main() {
+int main2() {
 
 
         field court[COURT_SIZE][COURT_SIZE];
@@ -115,7 +115,6 @@ int main() {
 
         //      printf("%s\n", court[i][j].field_id);
 
-
-
+    return 1;
 
 }
