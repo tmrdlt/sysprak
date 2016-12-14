@@ -19,7 +19,7 @@
 #include "string_helper.h"
 #include "msg_creator.h"
 #include "bashni_structs.h"
-
+#include "court_helper.h"
 
 //Enum for States of Client
 typedef enum { PROLOG, COURSE, DRAFT }phase;

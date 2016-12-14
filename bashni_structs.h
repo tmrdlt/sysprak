@@ -12,6 +12,8 @@
 #define COURT_SIZE 8
 #define FIELD_ID_SIZE 3
 #define TOWERS_SIZE 25
+#define THINKING 1
+#define NOT_THINKING 0
 
 typedef struct {
     int fd;

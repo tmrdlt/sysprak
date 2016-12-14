@@ -292,20 +292,20 @@ phase handle_course(phase_data *data ){
         
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
-        
-        _game_state->flag_thinking = 1;
+        new_phase = DRAFT;
+        _game_state->flag_thinking = THINKING;
         if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
-            perror("Quittung für Endpieceslist konnte nicht gesendet werden\n!");
+            perror("THINKING konnte nicht gesendet werden\n!");
             quit = true;
         }
         
         printf("Alle Steine gelesen und gesetzt\n");
+        
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
         printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //TODO change gameState
-        char **move;
-        split(data->splited_reply[1], '@', &move);
+        set_draft (_game_state->court, data->splited_reply[1]);
         
         
         
@@ -321,7 +321,8 @@ phase handle_course(phase_data *data ){
         
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
-        _game_state->flag_thinking = 0;
+        
+        set_court(_game_state->court, COURT_SIZE);
         printf("Steine setzen\n");
         
         //Gewinner Spiel
@@ -357,9 +358,10 @@ phase handle_course(phase_data *data ){
  * Handle Phase Spielzug
  */
 phase handle_draft(phase_data *data ){
-    phase new_phase = _phase;
+    phase new_phase = COURSE;
     
     if(strstr(data->splited_reply[1], "MOVEOK")) {
+    	_game_state->flag_thinking = NOT_THINKING;
     }
     
     return new_phase;
