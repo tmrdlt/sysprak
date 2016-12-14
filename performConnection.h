@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include<signal.h>
 #include <sys/socket.h>
 #include "config.h"
 #include "string_helper.h"
@@ -25,6 +26,8 @@
 typedef enum { PROLOG, COURSE, DRAFT }phase;
 
 //Attributes for handle Methods
+
+extern int fd_pipe_thinker;
 
 
 //phase table function

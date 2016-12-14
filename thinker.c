@@ -18,7 +18,12 @@ int fd;
 //}
 
 void think(){
+    
+    printf("Signal received\n");
     write(fd, "A3:B4", strlen("A3:B4"));
+    
+    printf("Move send\n");
+    
 //    game_state *_game_state = address_shm(id_seg_gameparams);
 //    
 //    if(_game_state->flag_thinking){

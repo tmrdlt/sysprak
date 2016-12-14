@@ -122,7 +122,6 @@ int main(int argc, char *argv[]) {
         
         signal(SIGUSR1, think);
         
-        
         ret_code = wait(NULL);
 
         if (ret_code < 0) {
@@ -144,13 +143,17 @@ int main(int argc, char *argv[]) {
         
         if(_fd == -1)
             return EXIT_FAILURE;
+        
+        close (feld[1]);
+        
+        fd_pipe_thinker = feld[0];
     
         performConnection(_fd, _shm_id);
 
 	         
        
         //Schreibeseite schliessen
-        close (feld[1]);
+        
        
 
         printf("Id connector %d \n" , shmdata->process_id_connector);

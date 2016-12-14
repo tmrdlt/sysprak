@@ -16,6 +16,8 @@ phase _phase = PROLOG;
 prolog_data _prolog_data;
 player *players;
 
+int fd_pipe_thinker;
+
 int game_shm_id;
 
 phase_func_t* const phase_table[3] = {
@@ -156,15 +158,15 @@ phase handle_prolog(phase_data *data ){
         // Server allows entering Game
     }else if(strstr(data->splited_reply[1], "PLAYING")) {
         if(!strstr(data->splited_reply[2], _config.gamekindname)){
-          printf("Falsches Spiel!\n");
+            printf("Falsches Spiel!\n");
             quit = true;
-           return new_phase;
-        
-         }else{
+            return new_phase;
+            
+        }else{
             printf("Client und Server Spiel-Typ stimmen überein!\n");
-        
-        _prolog_data.set_game_name = 1;
-         }
+            
+            _prolog_data.set_game_name = 1;
+        }
         
     }else if (_prolog_data.set_game_name == 1){
         //ließ game-name
@@ -172,14 +174,14 @@ phase handle_prolog(phase_data *data ){
         game_name++;
         game_name++;
         printf("Bot betritt das Spiel: %s! \n" , game_name);
-         strcpy(_game_state->game_name , game_name);
+        strcpy(_game_state->game_name , game_name);
         
-       // sende gewünschte Spielernummer (noch leer)
+        // sende gewünschte Spielernummer (noch leer)
         char *message = create_msg_player(_game_state->player_number);
-         if( send_to_gameserver(data->fd, message) < 0){
-             perror("Initialisierung Spieler fehlgeschlagen\n");
+        if( send_to_gameserver(data->fd, message) < 0){
+            perror("Initialisierung Spieler fehlgeschlagen\n");
             quit = true;
-         }
+        }
         
         _prolog_data.set_game_name = 0;
         
@@ -309,16 +311,6 @@ phase handle_course(phase_data *data ){
         
         
         
-        //Server erlaubt berechnung des nächsten Zuges
-    }else if(strstr(data->splited_reply[1], "OKTHINKING")) {
-        if(_game_state->flag_thinking == THINKING){
-			if (kill(getppid(), SIGUSR1) < 0) {
-       		perror ("Fehler bei Senden vom Signal).");
-        	exit(EXIT_FAILURE);}
-		}
-		
-		read (feld[0], puffer, PIPE_BUF);
-        printf("Berechne deinen Zug\n");
         
         //Game over
     }else if(strstr(data->splited_reply[1], "GAMEOVER")) {
@@ -367,8 +359,31 @@ phase handle_draft(phase_data *data ){
     phase new_phase = COURSE;
     
     if(strstr(data->splited_reply[1], "MOVEOK")) {
-    	_game_state->flag_thinking = NOT_THINKING;
+        _game_state->flag_thinking = NOT_THINKING;
+    }     //Server erlaubt berechnung des nächsten Zuges
+    else if(strstr(data->splited_reply[1], "OKTHINK")) {
+        
+        printf("send Signal\n");
+        
+        //_game_state->flag_thinking = THINKING;
+        if (kill(getppid(), SIGUSR1) < 0) {
+            perror ("Fehler bei Senden vom Signal).");
+            exit(EXIT_FAILURE);
+        }
+        
+        
+        printf("Signal send\n");
+        char puffer[128];
+        
+        if (read(fd_pipe_thinker, puffer, 128) < 0){
+            perror ("Fehler bei lesen aus pipe).");
+            exit(EXIT_FAILURE);
+        }
+        
+        printf("Move received\n");
+        printf("Berechneter Zug %s\n", puffer);
     }
+    
     
     return new_phase;
 }
@@ -388,7 +403,7 @@ phase run_phase( phase cur_phase, phase_data *data ) {
 int send_to_gameserver(int fd, char *message){
     printf("\n C: %s",message);
     int res =( int)send(fd, message, strlen(message),0);
-   // printf("%d bytes übertragen \n" , res);
+    // printf("%d bytes übertragen \n" , res);
     if(res<0){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
