@@ -30,8 +30,6 @@ void build_move(char *old_pos, char *new_pos, char *dest);
 
 void think();
 
-void test_thinker();
-
 char *check_lower_right(field **court,int max_size_court, int i, int j);
 
 char *check_lower_left(field **court,int max_size_court, int i, int j);

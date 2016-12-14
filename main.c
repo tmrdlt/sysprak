@@ -88,10 +88,8 @@ int main(int argc, char *argv[]) {
    
     
     //Anlegen von namenlosen Pipe
-    int feld[2] , n;
-    char puffer[PIPE_BUF];
-    
-    if (pipe (feld) < 0) {
+    int feld[2];
+if (pipe (feld) < 0) {
       perror ("pipe");
       exit (EXIT_FAILURE);
    }

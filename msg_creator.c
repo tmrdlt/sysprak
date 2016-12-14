@@ -32,7 +32,7 @@ char *create_msg_version(){
 char *create_msg_player(int player_id){
     char id[] = "PLAYER ";
     char *msg;
-    char *id_string;
+    char id_string[15];
     
     
     

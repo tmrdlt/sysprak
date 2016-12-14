@@ -69,20 +69,20 @@ int delete_shm (int shm_id){
 }
 
 //Ablegen von Daten in SHM
-void write_shm (char *address_shm, int size, char *data)
-{
-    for (int i = 0; i < size; i++)
-    {
-        address_shm[i] = data[i];}
-}
+//void write_shm (char *address_shm, int size, char *data)
+//{
+//    for (int i = 0; i < size; i++)
+//    {
+//        address_shm[i] = data[i];}
+//}
 
 //Lesen von Daten
-char *read_shm (char *address_shm, int size)
-{
-    char *data;
-    for (int i = 0; i < size; i++)
-    {
-        data[i] = address_shm[i];
-    }
-    return data;
-}
+//char *read_shm (char *address_shm, int size)
+//{
+//    char *data = malloc(sizeof(char)*size);
+//    for (int i = 0; i < size; i++)
+//    {
+//        data[i] = address_shm[i];
+//    }
+//    return data;
+//}

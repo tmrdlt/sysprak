@@ -56,7 +56,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
         for(int i=0; i<size; i++) {
                 printf("%d| ", 8-i);
                 for(int j=0; j<size; j++) {
-                        unsigned int len = strlen(court[i][j].towers);
+                        int len = (int)strlen(court[i][j].towers);
                         printf("%c ", court[i][j].towers[len-1]);
 
                 }
@@ -69,7 +69,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
         printf("============\n");
         for(int i=0; i<size; i++) {
                 for(int j=0; j<size; j++) {
-                        unsigned int len = strlen(court[i][j].towers);
+                        int len = (int)strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
                                 printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
                         }
@@ -80,7 +80,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
         printf("============\n");
         for(int i=0; i<size; i++) {
                 for(int j=0; j<size; j++) {
-                        int len = strlen(court[i][j].towers);
+                        int len = (int) strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'B' || court[i][j].towers[len-1] == 'b') {
                                 printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
                         }

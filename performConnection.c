@@ -436,34 +436,34 @@ void disconnect(int fd){
         free(_player);
 }
 
-int test_msg_pattern(int argc, const char * argv[]) {
-    // insert code here...
-    
-    printf("Hello World\n");
-    
-    char *instructionsToCheck[] = {
-        "+ PLAYING 12451",
-        "+ Muster game xyr",
-        "+ YOU 2 Hans",
-        "+ TOTAL 3"    ,
-        "+ 0 player1 1",
-        "+ 1 player 2 peter 1",
-        "+ 2 player 3 peter 1",
-        "+ ENDPLAYERS"
-    };
-    
-    for(int i = 0 ; i< 8; i++){
-        phase_data _data;
-        _data.server_reply = instructionsToCheck[i];
-        char ** splited;
-        int count = split(instructionsToCheck[i], ' ', &splited);
-        _data.count_elements = count;
-        _data.fd = 0;
-        _data.splited_reply = splited;
-        handle_prolog(&_data);
-        free(splited);
-    }
-    
-    return 0;
-}
+//int test_msg_pattern(int argc, const char * argv[]) {
+//    // insert code here...
+//    
+//    printf("Hello World\n");
+//    
+//    char *instructionsToCheck[] = {
+//        "+ PLAYING 12451",
+//        "+ Muster game xyr",
+//        "+ YOU 2 Hans",
+//        "+ TOTAL 3"    ,
+//        "+ 0 player1 1",
+//        "+ 1 player 2 peter 1",
+//        "+ 2 player 3 peter 1",
+//        "+ ENDPLAYERS"
+//    };
+//    
+//    for(int i = 0 ; i< 8; i++){
+//        phase_data _data;
+//        _data.server_reply = instructionsToCheck[i];
+//        char ** splited;
+//        int count = split(instructionsToCheck[i], ' ', &splited);
+//        _data.count_elements = count;
+//        _data.fd = 0;
+//        _data.splited_reply = splited;
+//        handle_prolog(&_data);
+//        free(splited);
+//    }
+//    
+//    return 0;
+//}
 
