@@ -388,7 +388,7 @@ phase run_phase( phase cur_phase, phase_data *data ) {
 int send_to_gameserver(int fd, char *message){
     printf("\n C: %s",message);
     int res =( int)send(fd, message, strlen(message),0);
-    printf("%d bytes übertragen \n" , res);
+   // printf("%d bytes übertragen \n" , res);
     if(res<0){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;

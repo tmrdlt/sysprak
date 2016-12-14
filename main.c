@@ -72,10 +72,7 @@ int main(int argc, char *argv[]) {
     // öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
     openconfig(filename);
     printf("Hostname: %s \n", _config.hostname);
-    int fd = connect_to_server();
 
-    if(fd == -1)
-        return EXIT_FAILURE;
 
 
 
@@ -88,7 +85,7 @@ int main(int argc, char *argv[]) {
     shmdata->player_number = player_number;
     shmdata->game_name = game_id;
 
-    performConnection(fd, _shm_id);
+   
     
     //Anlegen von namenlosen Pipe
     int feld[2] , n;
@@ -114,20 +111,19 @@ int main(int argc, char *argv[]) {
     else if (pid > 0) {
         printf("Hi hier ist der Thinker (Elternprozess)\n");
         //shmdata->process_id_thinker = pid;
-        
-        signal(SIGUSR1, think);
-        
+    
         //Leseseite schliessen
         close (feld[0]);
         
         // In die Schreibseite der Pipe schreiben 
-        if (write (feld[1], puffer, PIPE_BUF) < 0) {
-        	perror ("Fehler beim Schreiben in die Pipe.");
-		} else {
-			n = write (feld[1], puffer, PIPE_BUF);
-		}
-
-         ret_code = wait(NULL);
+        //write (feld[1], puffer, PIPE_BUF);
+        
+        fd = feld[1];
+        
+        signal(SIGUSR1, think);
+        
+        
+        ret_code = wait(NULL);
 
         if (ret_code < 0) {
             perror ("Fehler beim Warten auf Kindprozess.");
@@ -142,7 +138,15 @@ int main(int argc, char *argv[]) {
         printf("Hi hier ist der Connector (Kindprozess)\n");
        // shmdata->process_id_connector = pid;
 
-       // sleep(10);     		
+
+       // sleep(10);
+        int _fd = connect_to_server();
+        
+        if(_fd == -1)
+            return EXIT_FAILURE;
+    
+        performConnection(_fd, _shm_id);
+
 	         
        
         //Schreibeseite schliessen

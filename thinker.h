@@ -28,9 +28,20 @@ bool char_cmp_ignore_case(char char_1 , char char_2);
 
 void build_move(char *old_pos, char *new_pos, char *dest);
 
-void think(int id_seg_gameparams);
+void think();
 
 void test_thinker();
+
+char *check_lower_right(field **court,int max_size_court, int i, int j);
+
+char *check_lower_left(field **court,int max_size_court, int i, int j);
+
+char *check_upper_right(field **court,int max_size_court, int i, int j);
+
+char *check_upper_left(field **court,int max_size_court, int i, int j);
+
+extern int fd;
+
 
 //void print_court(field **court, int size);
 

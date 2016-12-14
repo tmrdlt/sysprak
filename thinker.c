@@ -9,25 +9,30 @@
 #include "thinker.h"
 #include <time.h>
 
+int fd;
+
+
 
 //int main(int argc, char *argv[]) {
 //    test_thinker();
 //}
 
-void think(int id_seg_gameparams){
-    game_state *_game_state = address_shm(id_seg_gameparams);
-    
-    if(_game_state->flag_thinking){
-        //think_nxt_move(_game_state->court, 3000, 8);
-    }else{
-        perror("Thinkanstoß aber Connector Flag nicht gesetzt! \n");
-        //... do something
-    }
+void think(){
+    write(fd, "A3:B4", strlen("A3:B4"));
+//    game_state *_game_state = address_shm(id_seg_gameparams);
+//    
+//    if(_game_state->flag_thinking){
+//        
+//        //think_nxt_move(_game_state->court, 3000, 8);
+//    }else{
+//        perror("Thinkanstoß aber Connector Flag nicht gesetzt! \n");
+//        //... do something
+//    }
 }
 
 void think_nxt_move(field **court, int time_in_s, int max_size, char my_color){
     
-    print_court(court, max_size);
+  //  print_court(court, max_size);
     
     char move[5];
     
@@ -56,31 +61,16 @@ void think_nxt_move_white(field **court , int time_in_s, int max_size,char my_co
         for(int j = 0 ; j < max_size ; j ++){
             
             
-            // check "links" nach "vorne"
+            
             int tmp=(int) strlen(court[i][j].towers)-1;
             if(char_cmp_ignore_case(court[i][j].towers[tmp] , my_color)){
-                printf("%c is mycolor %c\n" ,court[i][j].towers[tmp],my_color);
-                if (i < max_size-1 && j > 0){
-                    if(strstr(court[i+1][j-1].towers,"_")){
-                        if (!strcmp(old_field , "00")){
-                            printf("tmp match \n");
-                            
-                            old_field = court[i][j].field_id;
-                            new_field= court[i+1][j-1].field_id;
-                            
-                        }
-                    }else if(char_cmp_ignore_case(court[i+1][j-1].towers[strlen(court[i+1][j-1].towers)-1] , 'b')
-                             && i+2 < max_size && j-2 >= 0){
-                        if(strstr(court[i+2][j-2].towers,"_")){
-                            printf("schlage b! \n");
-                            
-                            old_field = court[i][j].field_id;
-                            new_field= court[i+2][j-2].field_id;
-                            
-                            best_move_found = true;
-                            break;
-                        }
-                    }
+               // printf("%c is mycolor %c\n" ,court[i][j].towers[tmp],my_color);
+                // check "links" nach "vorne"
+                
+                new_field = check_lower_left(court, max_size, i, j);
+                
+                if(new_field){
+                    old_field = court[i][j].field_id;
                 }
                 
                 // check "rechts" nach "vorne"
@@ -160,6 +150,41 @@ void think_nxt_move_white(field **court , int time_in_s, int max_size,char my_co
     //  if (best_move_found)break;
     build_move(old_field, new_field, move);
 }
+
+char *check_lower_right(field **court,int max_size, int i, int j){
+    char *result;
+    if (i < max_size-1 && j > 0){
+        if(strstr(court[i+1][j-1].towers,"_")){
+                printf("tmp match \n");
+                result= court[i+1][j-1].field_id;
+                
+            }
+        }else if(char_cmp_ignore_case(court[i+1][j-1].towers[strlen(court[i+1][j-1].towers)-1] , 'b')
+                 && i+2 < max_size && j-2 >= 0){
+            if(strstr(court[i+2][j-2].towers,"_")){
+                printf("schlage b! \n");
+                result= court[i+2][j-2].field_id;
+                
+            }
+        }
+    return result;
+}
+
+char *check_lower_left(field **court,int max_size_court, int i, int j){
+    return"";
+}
+
+char *check_upper_right(field **court,int max_size_court, int i, int j){
+    return"";
+}
+
+char *check_upper_left(field **court,int max_size_court, int i, int j){
+    return"";
+}
+
+
+
+
 
 void think_nxt_move_black(field **court , int time_in_s, int max_size_court,char my_color, char *move){
     
