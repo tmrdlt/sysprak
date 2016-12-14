@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
     performConnection(fd, _shm_id);
     
     //Anlegen von namenlosen Pipe
-    int feld[2];
+    int feld[2] , n;
     char puffer[PIPE_BUF];
     
     if (pipe (feld) < 0) {
@@ -119,8 +119,13 @@ int main(int argc, char *argv[]) {
         
         //Leseseite schliessen
         close (feld[0]);
+        
         // In die Schreibseite der Pipe schreiben 
-        write (feld[1], puffer, PIPE_BUF);
+        if (write (feld[1], puffer, PIPE_BUF) < 0) {
+        	perror ("Fehler beim Schreiben in die Pipe.");
+		} else {
+			n = write (feld[1], puffer, PIPE_BUF);
+		}
 
          ret_code = wait(NULL);
 
@@ -151,7 +156,9 @@ int main(int argc, char *argv[]) {
         //Schreibeseite schliessen
         close (feld[1]);
         // Leseseite der Pipe auslesen
-        read (feld[0], puffer, PIPE_BUF);
+        if (read (feld[0], puffer, PIPE_BUF) != n) {
+        	perror ("Fehler beim Lesen von der Pipe.");
+		}
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");

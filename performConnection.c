@@ -304,7 +304,7 @@ phase handle_course(phase_data *data ){
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
         printf("Stein auf %s setzen\n", data->splited_reply[1]);
-        //TODO change gameState
+        //Change gameState
         set_draft (_game_state->court, data->splited_reply[1]);
         
         
