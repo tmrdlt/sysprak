@@ -9,19 +9,20 @@
 #include "string_helper.h"
 
 
+
 int split(char *string_to_split , char delimiter , char ***dest);
 
 void float_to_string(float _float,  char*dest){
     char str[15];
     sprintf(str, "%fl", _float);
-
+    strcpy(dest, str);
 }
 
 
 void int_to_string(int _int,  char*dest){
     char str[15];
     sprintf(str, "%d", _int);
-
+    strcpy(dest, str);
 }
 
 float string_to_float(char *string){

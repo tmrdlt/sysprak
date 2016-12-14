@@ -8,7 +8,7 @@ GAMEID = 123gameid1234 	# -g flag (REQUIRED)
 PLAYER = 1							# -p flag (OPTIONAL)
 CONFIG = client.conf		# -f flag (OPTIONAL)
 
-OBJ = config.o msg_creator.o string_helper.o performConnection.o connect_to_server.o shared_memory_segment.o thinker.o
+OBJ = config.o msg_creator.o string_helper.o performConnection.o connect_to_server.o shared_memory_segment.o thinker.o court_helper.o
 SRC = $(OBJ:%.o=%.c)
 HDR = $(OBJ:%.o=%.h) bashni_structs.h
 
