@@ -16,6 +16,7 @@
 #include "shared_memory_segment.h"
 #include "bashni_structs.h"
 #include "string_helper.h"
+#include "court_helper.h"
 
 void think_nxt_move(field **court , int time_in_s, int max_size_court,char my_color);
 

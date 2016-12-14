@@ -33,7 +33,7 @@ void set_court(field court[COURT_SIZE][COURT_SIZE], int size) {
 
 
 
-void set_draft(field court[COURT_SIZE][COURT_SIZE], int size, char* draft) {
+void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
         int i = 56-draft[3];  // '8' zu 0, '7' zu 1, usw.
         int j = draft[2]-65;  // 'A' zu 0, 'B' zu 1, usw.
         char zug[2] = {draft[0], '\0'};
@@ -56,7 +56,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
         for(int i=0; i<size; i++) {
                 printf("%d| ", 8-i);
                 for(int j=0; j<size; j++) {
-                        int len = strlen(court[i][j].towers);
+                        unsigned int len = strlen(court[i][j].towers);
                         printf("%c ", court[i][j].towers[len-1]);
 
                 }
@@ -69,7 +69,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
         printf("============\n");
         for(int i=0; i<size; i++) {
                 for(int j=0; j<size; j++) {
-                        int len = strlen(court[i][j].towers);
+                        unsigned int len = strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
                                 printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
                         }
@@ -102,10 +102,10 @@ int main2() {
         char draft1[] = "w@B6";
         char draft2[] = "B@D6";
         char draft3[] = "b@D6";
-        set_draft(court, COURT_SIZE, draft);
-        set_draft(court, COURT_SIZE, draft1);
-        set_draft(court, COURT_SIZE, draft2);
-        set_draft(court, COURT_SIZE, draft3);
+        set_draft(court, draft);
+        set_draft(court, draft1);
+        set_draft(court, draft2);
+        set_draft(court, draft3);
         print_court(court, COURT_SIZE);
 
 
