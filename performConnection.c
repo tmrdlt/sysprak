@@ -311,7 +311,13 @@ phase handle_course(phase_data *data ){
         
         //Server erlaubt berechnung des nächsten Zuges
     }else if(strstr(data->splited_reply[1], "OKTHINKING")) {
-        // thinking();
+        if(_game_state->flag_thinking == THINKING){
+			if (kill(getppid(), SIGUSR1) < 0) {
+       		perror ("Fehler bei Senden vom Signal).");
+        	exit(EXIT_FAILURE);}
+		}
+		
+		read (feld[0], puffer, PIPE_BUF);
         printf("Berechne deinen Zug\n");
         
         //Game over

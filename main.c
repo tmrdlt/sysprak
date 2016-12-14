@@ -142,23 +142,12 @@ int main(int argc, char *argv[]) {
         printf("Hi hier ist der Connector (Kindprozess)\n");
        // shmdata->process_id_connector = pid;
 
-       // sleep(10);
-       game_state *_game_state = address_shm(_shm_id);
-    
-    	if(_game_state->flag_thinking==1){
-			if (kill(getppid(), SIGUSR1) < 0) {
-       		perror ("Fehler bei Senden vom Signal).");
-        	exit(EXIT_FAILURE);}
-		}
-       		
+       // sleep(10);     		
 	         
        
         //Schreibeseite schliessen
         close (feld[1]);
-        // Leseseite der Pipe auslesen
-        if (read (feld[0], puffer, PIPE_BUF) != n) {
-        	perror ("Fehler beim Lesen von der Pipe.");
-		}
+       
 
         printf("Id connector %d \n" , shmdata->process_id_connector);
         printf("beende Connector\n");
