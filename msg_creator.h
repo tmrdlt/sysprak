@@ -18,17 +18,18 @@
 
 extern char *version;
 
-void create_msg_version(char **dest);
+char *create_msg_version();
 
-void create_msg_player(char **dest,int player_id);
+char *create_msg_player(int player_id);
 
-void create_msg_id(char **dest, char *id);
+char *create_msg_id(char *id);
 
-void create_msg_okwait(char **dest);
+char *create_msg_okwait();
 
-void create_msg_thinking(char **dest);
+char *create_msg_thinking();
 
-void create_msg_play(char **dest, char *move);
+char *create_msg_play(char *move);
 
+long strcat_with_realloc(char *dest, char *append);
 
 #endif /* msg_creator_h */

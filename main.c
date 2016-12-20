@@ -122,11 +122,8 @@ if (pipe (feld) < 0) {
         signal(SIGUSR1, think);
 
         ret_code = wait(NULL);
-        if (ret_code < 0) {
-            perror ("Fehler beim Warten auf Kindprozess.");
-            exit(EXIT_FAILURE);
-        }
-  
+
+        
         printf("beende Thinker\n");
         //printf("Id thinker %d \n" , shmdata->process_id_thinker);
         /*
