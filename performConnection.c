@@ -149,7 +149,8 @@ phase handle_prolog(phase_data *data ){
         }
 
         // send Clients version
-        char *msg = create_msg_version();
+        char *msg;
+        create_msg_version(&msg);
         if( send_to_gameserver(data->fd, msg) < 0){
             printf("Version des Clienten konnte nicht gesendet werden!\n");
             quit = true;
@@ -177,7 +178,8 @@ phase handle_prolog(phase_data *data ){
         strcpy(_game_state->game_name , game_name);
 
         // sende gewünschte Spielernummer (noch leer)
-        char *message = create_msg_player(_game_state->player_number);
+        char *message;
+        create_msg_player(&message, _game_state->player_number);
         if( send_to_gameserver(data->fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen\n");
             quit = true;
@@ -257,7 +259,9 @@ phase handle_prolog(phase_data *data ){
         printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
         // Sende die Game-ID zum Server
 
-        char *id_msg = create_msg_id(_game_state->game_name);
+        char *id_msg;
+        
+        create_msg_id(&id_msg, _game_state->game_name);
 
         if( send_to_gameserver(data->fd, id_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
@@ -281,8 +285,12 @@ phase handle_course(phase_data *data ){
     phase new_phase = _phase;
     if(strstr(data->splited_reply[1], "WAIT")) {
 
+        char *msg;
+        
+        create_msg_okwait(&msg);
+
         printf("Warte auf Gameserver\n");
-        if( send_to_gameserver(data->fd, create_msg_okwait()) < 0){
+        if( send_to_gameserver(data->fd, msg) < 0){
             perror("Quittung für Wait konnte nicht gesendet werden\n!");
             quit = true;
         }
@@ -297,7 +305,10 @@ phase handle_course(phase_data *data ){
         print_court(_game_state->court, COURT_SIZE);
         new_phase = DRAFT;
         _game_state->flag_thinking = THINKING;
-        if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
+        
+         char *msg;
+        create_msg_thinking(&msg);
+        if( send_to_gameserver(data->fd,msg ) < 0){
             perror("THINKING konnte nicht gesendet werden\n!");
             quit = true;
         }
@@ -404,7 +415,7 @@ int send_to_gameserver(int fd, char *message){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
     }
-    free(message);
+   free(message);
 
     return 2;
 }

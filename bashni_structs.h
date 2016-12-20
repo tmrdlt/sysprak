@@ -23,6 +23,11 @@ typedef struct {
 }phase_data;
 
 typedef struct {
+    int value;
+    char *move_id;
+}move_value;
+
+typedef struct {
     int set_game_name;
     int set_players;
 }prolog_data;

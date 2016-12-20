@@ -13,39 +13,23 @@ char *version = "2.3";
 char *delimiter ="\n";
 
 
-char *create_msg_version(){
+void create_msg_version(char **dest){
     char id[] = "VERSION ";
     char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(version) + strlen(delimiter)));
-    
-    if(msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     
     strcpy(msg, id);
     strcat(msg, version);
     strcat(msg, delimiter);
     
-    return msg;
+    strcpy(*dest, msg);
+    free(msg);
 }
 
-char *create_msg_player(int player_id){
+void create_msg_player(char **dest, int player_id){
     char id[] = "PLAYER ";
-    char *msg;
     char id_string[15];
-    
-    
-    
-    if(player_id >= 0){
-        msg = (char*) malloc(sizeof(char)*(strlen(id) + sizeof(char)*2 + strlen(delimiter)));
+    char *msg = (char*) malloc(sizeof(char)*(strlen(id) + 2 + strlen(delimiter)));
 
-    }else
-        msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
-    
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     strcpy(msg, id);
   
     if(player_id >= 0){
@@ -54,10 +38,11 @@ char *create_msg_player(int player_id){
     }
     
     strcat(msg, delimiter);
-    return msg;
+    strcpy(*dest, msg);
+    free(msg);
 }
 
-char *create_msg_id(char *id_game){
+void create_msg_id(char **dest, char *id_game){
     char id[] = "ID ";
     char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(id_game) + strlen(delimiter)));
     
@@ -68,10 +53,11 @@ char *create_msg_id(char *id_game){
     strcpy(msg, id);
     strcat(msg, id_game);
     strcat(msg, delimiter);
-    return msg;
+    strcpy(*dest, msg);
+    free(msg);
 }
 
-char *create_msg_okwait(){
+void create_msg_okwait(char **dest){
     char id[] = "OKWAIT";
     char *msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
     
@@ -81,10 +67,11 @@ char *create_msg_okwait(){
     }
     strcpy(msg, id);
     strcat(msg, delimiter);
-    return msg;
+    strcpy(*dest, msg);
+    free(msg);
 }
 
-char *create_msg_thinking(){
+void create_msg_thinking(char **dest){
     char id[] = "THINKING";
     char *msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
     
@@ -94,10 +81,11 @@ char *create_msg_thinking(){
     }
     strcpy(msg, id);
     strcat(msg, delimiter);
-    return msg;
+     strcpy(*dest, msg);
+     free(msg);
 }
 
-char *create_msg_play(char *move){
+void create_msg_play(char **dest, char *move){
     char id[] = "PLAY ";
     char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(move) + strlen(delimiter)));
    
@@ -108,7 +96,8 @@ char *create_msg_play(char *move){
      strcpy(msg, id);
     strcat(msg, move);
     strcat(msg, delimiter);
-    return msg;
+    strcpy(*dest, msg);
+    free(msg);
 }
 
 
