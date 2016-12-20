@@ -378,6 +378,11 @@ phase handle_draft(phase_data *data ){
         printf("send Signal\n");
 
         //_game_state->flag_thinking = THINKING;
+        if (kill(getppid(), SIGUSR1) < 0) {
+           perror ("Fehler bei Senden vom Signal).");
+           exit(EXIT_FAILURE);
+       }
+
 
         printf("Signal send\n");
         char puffer[128];
