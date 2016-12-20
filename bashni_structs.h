@@ -14,6 +14,7 @@
 #define TOWERS_SIZE 25
 #define THINKING 1
 #define NOT_THINKING 0
+#define MAX_DRAFT_LENGTH 38
 
 typedef struct {
     int fd;
@@ -21,6 +22,14 @@ typedef struct {
     char **splited_reply;
     int count_elements;
 }phase_data;
+
+typedef struct {
+    int value;
+    char move_id[MAX_DRAFT_LENGTH];
+    
+    int new_i, new_j, old_i, old_j;
+    
+}move_value;
 
 typedef struct {
     int set_game_name;
