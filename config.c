@@ -19,7 +19,7 @@ void openconfig(char *filename) {
 
 
         if(file == NULL) {
-            printf("Konfigurationsdatei konnte nicht geöffnet werden.\n");
+            perror("Konfigurationsdatei konnte nicht geöffnet werden.\n");
             strcpy(_config.hostname, STANDARD_HOSTNAME);
             _config.portnumber = STANDARD_PORTNUMBER;
             strcpy(_config.gamekindname, STANDARD_GAMEKINDNAME);
@@ -31,16 +31,16 @@ void openconfig(char *filename) {
           // /n wegschmeißen
                     line[i][strlen(line[i]) - 1] = '\0';
                   i++;
-                  printf("%s\n", line[i]);
+
                 }
 
                 fclose(file);
+
             for (int i = 0; i < 3; i++) {
                 removeSpaces(line[i]);
             }
 
             // hier entsprechend um weitere parameter erweitern:
-
 
             strcpy(_config.hostname, line[0]);
             getmethevalue(_config.hostname);
@@ -52,20 +52,8 @@ void openconfig(char *filename) {
             strcpy(_portnumber, line[1]);
             getmethevalue(_portnumber);
             _config.portnumber = atoi(_portnumber);
-/*
-            strcpy(_config.hostname, STANDARD_HOSTNAME);
-            _config.portnumber = STANDARD_PORTNUMBER;
-            strcpy(_config.gamekindname, STANDARD_GAMEKINDNAME);*/
-
 
         }
-strcpy(_config.hostname, STANDARD_HOSTNAME);
-
-
-
-
-
-
 
 }
 
@@ -85,11 +73,13 @@ void removeSpaces(char* string) {
 
 // manipuliert einen string so, dass nur der teil nach dem "=" übrig bleibt.
 void getmethevalue(char string[CONFIG_ZEICHEN]) {
+
   char *toget;
+  char _toget[50]; //keine ahnung wieso ich den brauche aber ich brauche ihn!
   char *delimiter = "=";
   toget = strtok(string, delimiter);
   toget = strtok(NULL, delimiter);
-  printf("toget2:%s\n",toget );
-  strcpy(string, toget);
-  printf("%s\n", string);
+  strcpy(_toget, toget);
+  strcpy(string, _toget);
+
 }
