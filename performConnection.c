@@ -367,11 +367,6 @@ phase handle_draft(phase_data *data ){
         printf("send Signal\n");
 
         //_game_state->flag_thinking = THINKING;
-        if (kill(getppid(), SIGUSR1) < 0) {
-            perror ("Fehler bei Senden vom Signal).");
-            exit(EXIT_FAILURE);
-        }
-
 
         printf("Signal send\n");
         char puffer[128];
@@ -425,7 +420,8 @@ void disconnect(int fd){
         int id_shm_player =_game_state->players_shm_ids;
         printf("Delete players.\n");
         delete_shm(id_shm_player);
-
+    }
+    if(_game_state != NULL){
         printf("Dettach gamestate.\n");
         dettach_shm(_game_state);
         printf("delete gamestate.\n");

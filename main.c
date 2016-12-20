@@ -118,6 +118,7 @@ if (pipe (feld) < 0) {
 
         fd = feld[1];
 
+
         signal(SIGUSR1, think);
 
         ret_code = wait(NULL);
