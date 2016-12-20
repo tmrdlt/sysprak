@@ -192,6 +192,7 @@ phase handle_prolog(phase_data *data ){
         _player->number = string_to_int(data->splited_reply[2]);
         _player->player_name = data->splited_reply[3];
         printf("Hi (%i) %s!\n" ,_player->number, _player->player_name);
+        _game_state->player_number = _player->number;
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
 
@@ -294,7 +295,7 @@ phase handle_course(phase_data *data ){
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
-        print_court(_game_state->court, COURT_SIZE);
+        print_court(_game_state->court, COURT_SIZE, _game_state->player_number);
         new_phase = DRAFT;
         _game_state->flag_thinking = THINKING;
         if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
@@ -321,7 +322,7 @@ phase handle_course(phase_data *data ){
         //Changed Game Pieces transfered
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
 
-        set_court(_game_state->court, COURT_SIZE);
+        set_court(_game_state->court, COURT_SIZE, _game_state->player_number);
         printf("Steine setzen\n");
 
         //Gewinner Spiel

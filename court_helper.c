@@ -4,66 +4,124 @@
 
 
 // struct field besetzen: mit den field_ids (A8, B8, usw.) und mit . _ . _ usw.
-void set_court(field court[COURT_SIZE][COURT_SIZE], int size) {
+void set_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
 
-        // field_ids setzen
-        for (int i=0; i<size; i++) {
-                for (int j=0; j<size; j++) {
-                        char k = j+65;  // 0 zu 'A', 1 zu 'B' usw.
-                        char l = 56-i;  // 0 zu '8', 1 zu '7' usw.
-                        char feld[3] = {k, l, '\0'};
-                        strcpy(court[i][j].field_id, feld);
+        // wenn der client weiß ist (player_id = 0):
+
+        if(player_id == 0) {
+                // field_ids setzen
+                for (int i=0; i<size; i++) {
+                        for (int j=0; j<size; j++) {
+                                char k = j+65; // 0 zu 'A', 1 zu 'B' usw.
+                                char l = 56-i; // 0 zu '8', 1 zu '7' usw.
+                                char feld[3] = {k, l, '\0'};
+                                strcpy(court[i][j].field_id, feld);
+                        }
                 }
-        }
-        // ._._ setzten
-        for(int i=0; i<(size/2); i++) {
-                for(int j=0; j<(size/2); j++) {
-                        court[2*i][2*j].towers[0] = '.';
-                        court[2*i][2*j].towers[1] = '\0';
-                        court[2*i][2*j+1].towers[0] = '_';
-                        court[2*i][2*j+1].towers[1] = '\0';
-                        court[2*i+1][(2*j)+1].towers[0] = '.';
-                        court[2*i+1][(2*j)+1].towers[1] = '\0';
-                        court[2*i+1][2*j].towers[0] = '_';
-                        court[2*i+1][2*j].towers[1] = '\0';
+                // ._._ setzten
+                for(int i=0; i<(size/2); i++) {
+                        for(int j=0; j<(size/2); j++) {
+                                court[2*i][2*j].towers[0] = '.';
+                                court[2*i][2*j].towers[1] = '\0';
+                                court[2*i][2*j+1].towers[0] = '_';
+                                court[2*i][2*j+1].towers[1] = '\0';
+                                court[2*i+1][(2*j)+1].towers[0] = '.';
+                                court[2*i+1][(2*j)+1].towers[1] = '\0';
+                                court[2*i+1][2*j].towers[0] = '_';
+                                court[2*i+1][2*j].towers[1] = '\0';
+                        }
                 }
+
+                // wenn der client schwarz ist (player_id = 1):
+
+        } else {
+                // field_ids setzen
+                for (int i=0; i<size; i++) {
+                        for (int j=0; j<size; j++) {
+                                char k = 72-j; // 0 zu 'H',
+                                char l = 49+i; // 0 zu '1',
+                                char feld[3] = {k, l, '\0'};
+                                strcpy(court[i][j].field_id, feld);
+                        }
+                }
+                // ._._ setzten
+                for(int i=0; i<(size/2); i++) {
+                        for(int j=0; j<(size/2); j++) {
+                                court[2*i][2*j].towers[0] = '.';
+                                court[2*i][2*j].towers[1] = '\0';
+                                court[2*i][2*j+1].towers[0] = '_';
+                                court[2*i][2*j+1].towers[1] = '\0';
+                                court[2*i+1][(2*j)+1].towers[0] = '.';
+                                court[2*i+1][(2*j)+1].towers[1] = '\0';
+                                court[2*i+1][2*j].towers[0] = '_';
+                                court[2*i+1][2*j].towers[1] = '\0';
+                        }
+                }
+
         }
+
 
 }
 
 
 
 void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
-        int i = 56-draft[3];  // '8' zu 0, '7' zu 1, usw.
-        int j = draft[2]-65;  // 'A' zu 0, 'B' zu 1, usw.
+        char field_id_draft[3] = {draft[2], draft[3], '\0'};
+
         char zug[2] = {draft[0], '\0'};
 
-        // if noch kein stein gesetzt
-        if (court[i][j].towers[0] == '.'|| court[i][j].towers[0] == '_') {
-                //reinkopieren
-                strcpy(court[i][j].towers, zug);
-        } else {
-                //anhängen
-                strcat(court[i][j].towers, zug);
+        for (int i = 0; i < COURT_SIZE; i++) {
+                for (int j = 0; j < COURT_SIZE; j++) {
+                        if (strcmp(court[i][j].field_id, field_id_draft) == 0) {
+                                if (court[i][j].towers[0] == '.'|| court[i][j].towers[0] == '_') {
+                                        //reinkopieren
+                                        strcpy(court[i][j].towers, zug);
+                                } else {
+                                        //anhängen
+                                        strcat(court[i][j].towers, zug);
+                                }
+                        }
+                }
         }
+
 }
 
 
-void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
+void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
 
-        printf("   A B C D E F G H\n");
-        printf("  +---------------+\n");
-        for(int i=0; i<size; i++) {
-                printf("%d| ", 8-i);
-                for(int j=0; j<size; j++) {
-                        int len = (int)strlen(court[i][j].towers);
-                        printf("%c ", court[i][j].towers[len-1]);
+        printf("\n   ╭─┬─┬─┬─┬─┬─┬─┬─╮\n");
+        printf("   │A│B│C│D│E│F│G│H│\n");
+        printf("╭─┬┴─┴─┴─┴─┴─┴─┴─┴─┴┬─╮\n");
 
+        // wenn der client weiß ist (player_id = 0):
+        if(player_id == 0) {
+                for(int i=0; i<size; i++) {
+                        printf("│%d│ ", 8-i);
+                        for(int j=0; j<size; j++) {
+                                int len = (int)strlen(court[i][j].towers);
+                                print_unicode(court[i][j].towers[len-1]);
+
+                        }
+                        printf("│%d│\n", 8-i);
                 }
-                printf("|%d\n", 8-i);
+                // wenn der client schwarz ist (player_id = 1):
+        } else {
+                for(int i=(size-1); i>=0; i--) {
+                        printf("│%d│ ", i);
+                        for(int j=(size-1); j>=0; j--) {
+                                int len = (int)strlen(court[i][j].towers);
+                                print_unicode(court[i][j].towers[len-1]);
+
+                        }
+                        printf("│%d│\n", i);
+                }
+
+
         }
-        printf("  +---------------+\n");
-        printf("   A B C D E F G H\n");
+        printf("╰─┴┬─┬─┬─┬─┬─┬─┬─┬─┬┴─╯\n");
+        printf("   │A│B│C│D│E│F│G│H│\n");
+        printf("   ╰─┴─┴─┴─┴─┴─┴─┴─╯\n");
+
 
         printf("\nWhite Towers\n");
         printf("============\n");
@@ -71,7 +129,11 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
                 for(int j=0; j<size; j++) {
                         int len = (int)strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
-                                printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
+                                printf("%s: ", court[i][j].field_id);
+                                for (int k = 0; k < len; k++) {
+                                        print_unicode(court[i][j].towers[k]);
+                                }
+                                printf("\n");
                         }
                 }
         }
@@ -82,12 +144,35 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size) {
                 for(int j=0; j<size; j++) {
                         int len = (int) strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'B' || court[i][j].towers[len-1] == 'b') {
-                                printf("%s: %s\n", court[i][j].field_id, court[i][j].towers);
+                                printf("%s: ", court[i][j].field_id);
+                                for (int k = 0; k < len; k++) {
+                                        print_unicode(court[i][j].towers[k]);
+                                }
+                                printf("\n");
                         }
                 }
         }
+
 }
 
+
+void print_unicode(char _char) {
+        switch (_char) {
+        case 'w': printf("⛀ ");
+                break;
+        case 'W': printf("⛁ ");
+                break;
+        case 'b': printf("⛂ ");
+                break;
+        case 'B': printf("⛃ ");
+                break;
+        case '.': printf(". ");
+                break;
+        case '_': printf("_ ");
+                break;
+        }
+
+}
 
 
 
@@ -97,7 +182,8 @@ int main2() {
 
         field court[COURT_SIZE][COURT_SIZE];
 
-        set_court(court, COURT_SIZE);
+        int player_id = 1; //weiß
+        set_court(court, COURT_SIZE, player_id);
         char draft[] = "W@B6";
         char draft1[] = "w@B6";
         char draft2[] = "B@D6";
@@ -106,7 +192,7 @@ int main2() {
         set_draft(court, draft1);
         set_draft(court, draft2);
         set_draft(court, draft3);
-        print_court(court, COURT_SIZE);
+        print_court(court, COURT_SIZE, 0);
 
 
 
@@ -115,6 +201,6 @@ int main2() {
 
         //      printf("%s\n", court[i][j].field_id);
 
-    return 1;
+        return 1;
 
 }

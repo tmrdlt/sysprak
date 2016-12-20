@@ -10,6 +10,7 @@
 #define CONFIG_ZEILEN 3
 
 
+
 typedef struct{
     char gamekindname[CONFIG_ZEICHEN];
     char hostname[CONFIG_ZEICHEN];

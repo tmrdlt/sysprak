@@ -76,6 +76,8 @@ int main(int argc, char *argv[]) {
 
 
 
+
+
     int _shm_id;
     game_state *shmdata;
     _shm_id =shm_id(sizeof(game_state) + sizeof(char)*SIZE_COURT*SIZE_COURT);
@@ -123,7 +125,7 @@ if (pipe (feld) < 0) {
 
         ret_code = wait(NULL);
 
-        
+
         printf("beende Thinker\n");
         //printf("Id thinker %d \n" , shmdata->process_id_thinker);
         /*
