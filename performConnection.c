@@ -384,6 +384,14 @@ phase handle_draft(phase_data *data ){
 
         printf("Move received\n");
         printf("Berechneter Zug %s\n", puffer);
+        
+        char *play_msg = create_msg_play(puffer);
+        
+        if( send_to_gameserver(data->fd, play_msg) < 0){
+            perror("Fehler bei der Übertragung der Game Id!\n");
+            quit = true;
+        }
+        
     }
 
 

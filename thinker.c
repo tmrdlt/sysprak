@@ -34,11 +34,11 @@ void think(){
         
         
         char my_color = 'w' , oponent_color = 'b';
+        
         if (_game_state->player_number != 0){
             my_color = 'b' , oponent_color = 'w';
         }
-        
-        think_nxt_move(_game_state->court, 3000, 8, my_color, oponent_color);
+        think_nxt_move(_game_state->court, 3000, COURT_SIZE, my_color, oponent_color);
     }else{
         perror("Thinkanstoß aber Connector Flag nicht gesetzt! \n");
         //... do something
@@ -59,24 +59,26 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
     for(int i = 0 ; i < max_size && passed_time < allowed_time; i ++){
         for(int j = 0 ; j < max_size && passed_time < allowed_time; j ++){
             
-            //init drafts
-            move_value mv[4];
-            for(int n = 0; n < 4; n++){
-                mv[n].value = MOVE_ILLEGAL;
-                strcpy(mv[n].move_id, court[i][j].field_id);
+            if(court[i][j].towers[strlen(court[i][j].towers)-1] == my_color){
+                //init drafts
+                move_value mv[4];
+                for(int n = 0; n < 4; n++){
+                    mv[n].value = MOVE_ILLEGAL;
+                    strcpy(mv[n].move_id, court[i][j].field_id);
+                    
+                }
                 
-            }
-            
-            
-            int bashing = check_field(court, max_size, i, j, my_color, opponent_color, mv, 0);
-            
-            if (bashing == 1){
-                // Hier muss nach weiteren Teilzügen gesucht werden
-            }
-            
-            for(int n = 0; n < 4; n++){
-                if(mv[n].value > MOVE_ILLEGAL){
-                    rated_moves[count_legal_moves++] = mv[n];
+                
+                int bashing = check_field(court, max_size, i, j, my_color, opponent_color, mv, 0);
+                
+                if (bashing == 1){
+                    // Hier muss nach weiteren Teilzügen gesucht werden
+                }
+                
+                for(int n = 0; n < 4; n++){
+                    if(mv[n].value > MOVE_ILLEGAL){
+                        rated_moves[count_legal_moves++] = mv[n];
+                    }
                 }
             }
             
@@ -91,11 +93,12 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
     for(int i = 0 ; i < count_legal_moves && passed_time < allowed_time; i ++){
         if(rated_moves[i].value > best_move.value){
             best_move = rated_moves[i];
+
         }
     }
     
     // send best move to connector
-    printf("Next Move Found: %s Rating: %d" , best_move.move_id, best_move.value);
+    printf("Next Move Found: %s Rating: %d\n" , best_move.move_id, best_move.value);
     
     ssize_t bytes_wrote = write(fd, best_move.move_id, strlen(best_move.move_id));
     
@@ -104,11 +107,13 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
         exit(EXIT_FAILURE);
     }
     
-    int ret_code = wait(NULL);
-    if (ret_code < 0) {
-        perror ("Fehler beim Warten in think().");
-        exit(EXIT_FAILURE);
-    }
+//    int ret_code = waitpid(pid, NULL,0);
+//    
+//    if (ret_code < 0) {
+//        perror ("Fehler beim Warten auf Connector.");
+//        exit(EXIT_FAILURE);
+//    }
+    
     
 }
 
@@ -123,7 +128,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
             if(k == j_feld) continue; // die felder direkt neben davor oder dahinter müssen nicht geprüft werden
             
             // prüfe ob index überläuft
-            if (n < max_size && k < max_size && n > 0 && k > 0 ){
+            if (n < max_size && k < max_size && n >= 0 && k >= 0 ){
                 
                 // Wenn Feld leer (beziehbar)
                 if(strstr(court[n][k].towers,"_") && (must_bash != 1)){
@@ -147,7 +152,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
                     if(k < j_feld) next_j = k -1 ; else next_j = k + 1;
                     
                     // Falls ein Feld hinter dem Genger existiert
-                    if(next_i < max_size && next_j < max_size && next_i > 0 && next_j > 0){
+                    if(next_i < max_size && next_j < max_size && next_i >= 0 && next_j >= 0){
                         
                         //Prüfe ob Feld hinter Gegner Leer
                         if(strstr(court[next_i][next_j].towers,"_")){
@@ -184,7 +189,7 @@ int check_safe(field court[COURT_SIZE][COURT_SIZE],int max_size_court, int i, in
         for(int k = j-1 ; k < j+2 ; k++){
             if(k == j) continue;
             // return 0 if one can bash ur move
-            if(n < max_size_court && k < max_size_court && n > 0 && k > 0){
+            if(n < max_size_court && k < max_size_court && n >= 0 && k >= 0){
                 if(court[n][k].towers[strlen(court[n][k].towers)] == opponent_color)
                     return 0;
             }
@@ -205,7 +210,7 @@ int check_covered(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court, int i
         for(int k = j-1 ; k < j+2 ; k++){
             if(k == j || (n == old_i && k == old_j)) continue;
             // return 0 if one can bash ur move
-            if(n < max_size_court && k < max_size_court && n > 0 && k > 0){
+            if(n < max_size_court && k < max_size_court && n >= 0 && k >= 0){
                 if(court[n][k].towers[strlen(court[n][k].towers)-1] == my_color)
                     covered += MOVE_COVERED;
             }
@@ -218,5 +223,5 @@ int check_covered(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court, int i
 
 
 bool char_cmp_ignore_case(char char_1 , char char_2){
-    return (char_1 == char_2 || char_1  == char_2+32 || char_1 == char_2 -32);
+    return (char_1 == char_2|| char_1  == char_2+32 || char_1 == char_2 -32);
 }
