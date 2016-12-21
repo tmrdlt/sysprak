@@ -88,6 +88,7 @@ void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
 
 
 void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
+int unicode = 1;
 
         printf("\n   ╭─┬─┬─┬─┬─┬─┬─┬─╮\n");
         printf("   │A│B│C│D│E│F│G│H│\n");
@@ -99,8 +100,13 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         printf("│%d│ ", 8-i);
                         for(int j=0; j<size; j++) {
                                 int len = (int)strlen(court[i][j].towers);
+                                if (unicode == 1) {
+                                print_unicode(court[i][j].towers[len-1]);
+                              } else {
                                 printf("%c ", court[i][j].towers[len-1]);
-                            //    print_unicode(court[i][j].towers[len-1]);
+                              }
+
+                            //
 
                         }
                         printf("│%d│\n", 8-i);
@@ -111,9 +117,11 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         printf("│%d│ ", i);
                         for(int j=(size-1); j>=0; j--) {
                                 int len = (int)strlen(court[i][j].towers);
+                                if (unicode == 1) {
+                                print_unicode(court[i][j].towers[len-1]);
+                              } else {
                                 printf("%c ", court[i][j].towers[len-1]);
-                            //  print_unicode(court[i][j].towers[len-1]);
-
+                              }
                         }
                         printf("│%d│\n", i);
                 }
