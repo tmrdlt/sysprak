@@ -76,6 +76,8 @@ int main(int argc, char *argv[]) {
 
 
 
+
+
     int _shm_id;
     game_state *shmdata;
     _shm_id =shm_id(sizeof(game_state) + sizeof(char)*SIZE_COURT*SIZE_COURT);
@@ -123,6 +125,7 @@ if (pipe (feld) < 0) {
         signal(SIGUSR1, think);
 
         ret_code = wait(NULL);
+
         if (ret_code < 0) {
             perror ("Fehler beim Warten auf Connector.");
             exit(EXIT_FAILURE);

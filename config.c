@@ -1,7 +1,9 @@
 #include "config.h"
 #include <errno.h>
 
-
+#define STANDARD_HOSTNAME "sysprak.priv.lab.nm.ifi.lmu.de"
+#define STANDARD_GAMEKINDNAME "Bashni"
+#define STANDARD_PORTNUMBER 1357
 
 // zum erweitern um weitere parameter den Wert ZEILEN erhöhen und unten die entsprechenden Variablen einfügen
 
@@ -17,10 +19,10 @@ void openconfig(char *filename) {
 
 
         if(file == NULL) {
-            printf("Konfigurationsdatei konnte nicht geöffnet werden.\n");
-            strcpy(_config.hostname, "sysprak.priv.lab.nm.ifi.lmu.de\0");
-            _config.portnumber = 1357;
-            strcpy(_config.gamekindname, "Bashni\0");
+            perror("Konfigurationsdatei konnte nicht geöffnet werden.\n");
+            strcpy(_config.hostname, STANDARD_HOSTNAME);
+            _config.portnumber = STANDARD_PORTNUMBER;
+            strcpy(_config.gamekindname, STANDARD_GAMEKINDNAME);
 
         }else {
           // File Zeilenweise einlesen
@@ -29,15 +31,16 @@ void openconfig(char *filename) {
           // /n wegschmeißen
                     line[i][strlen(line[i]) - 1] = '\0';
                   i++;
+
                 }
 
                 fclose(file);
+
             for (int i = 0; i < 3; i++) {
                 removeSpaces(line[i]);
             }
 
             // hier entsprechend um weitere parameter erweitern:
-
 
             strcpy(_config.hostname, line[0]);
             getmethevalue(_config.hostname);
@@ -50,22 +53,7 @@ void openconfig(char *filename) {
             getmethevalue(_portnumber);
             _config.portnumber = atoi(_portnumber);
 
-
-
-            strcpy(_config.hostname, "sysprak.priv.lab.nm.ifi.lmu.de\0");
-            _config.portnumber = 1357;
-            strcpy(_config.gamekindname, "Bashni\0");
-
-
-
         }
-
-
-
-
-// TEST: printf("host: %s\nport: %d\nkind: %s\n", config.hostname, config.portnumber, config.gamekindname);
-
-
 
 }
 
@@ -85,7 +73,13 @@ void removeSpaces(char* string) {
 
 // manipuliert einen string so, dass nur der teil nach dem "=" übrig bleibt.
 void getmethevalue(char string[CONFIG_ZEICHEN]) {
+
+  char *toget;
+  char _toget[50]; //keine ahnung wieso ich den brauche aber ich brauche ihn!
   char *delimiter = "=";
-  string = strtok(string, delimiter);
-  string = strtok(NULL, delimiter);
+  toget = strtok(string, delimiter);
+  toget = strtok(NULL, delimiter);
+  strcpy(_toget, toget);
+  strcpy(string, _toget);
+
 }
