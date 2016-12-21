@@ -99,7 +99,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         printf("│%d│ ", 8-i);
                         for(int j=0; j<size; j++) {
                                 int len = (int)strlen(court[i][j].towers);
-                                printf("%c\n", court[i][j].towers[len-1]);
+                                printf("%c ", court[i][j].towers[len-1]);
                             //    print_unicode(court[i][j].towers[len-1]);
 
                         }
@@ -111,7 +111,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         printf("│%d│ ", i);
                         for(int j=(size-1); j>=0; j--) {
                                 int len = (int)strlen(court[i][j].towers);
-                                printf("%c\n", court[i][j].towers[len-1]);
+                                printf("%c ", court[i][j].towers[len-1]);
                             //  print_unicode(court[i][j].towers[len-1]);
 
                         }
@@ -132,7 +132,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         int len = (int)strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
                                 printf("%s: ", court[i][j].field_id);
-                                printf("%s\n",court[i][j].towers);
+                                printf("%s",court[i][j].towers);
                                 /*for (int k = 0; k < len; k++) {
                                         print_unicode(court[i][j].towers[k]);
                                 }*/
@@ -148,7 +148,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         int len = (int) strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'B' || court[i][j].towers[len-1] == 'b') {
                                 printf("%s: ", court[i][j].field_id);
-                                printf("%s\n",court[i][j].towers);
+                                printf("%s",court[i][j].towers);
                                 /*for (int k = 0; k < len; k++) {
                                         print_unicode(court[i][j].towers[k]);
                                 }*/
