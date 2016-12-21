@@ -35,7 +35,7 @@ char standard_filename[] = "client.conf";     //standard_filename
 
 
 int main(int argc, char *argv[]) {
-
+    
     pid_t pid = 0;                        //Prozess-ID des Kindprozesses
     int ret_code = 0;                     //Hilfsvariable für fork()
     filename = standard_filename;
@@ -118,11 +118,15 @@ if (pipe (feld) < 0) {
 
         fd = feld[1];
 
-
+        id_seg_gameparams = _shm_id;
+        
         signal(SIGUSR1, think);
 
         ret_code = wait(NULL);
-
+        if (ret_code < 0) {
+            perror ("Fehler beim Warten auf Connector.");
+            exit(EXIT_FAILURE);
+        }
         
         printf("beende Thinker\n");
         //printf("Id thinker %d \n" , shmdata->process_id_thinker);
@@ -143,6 +147,8 @@ if (pipe (feld) < 0) {
         close (feld[1]);
 
         fd_pipe_thinker = feld[0];
+        
+      
 
         performConnection(_fd, _shm_id);
 
