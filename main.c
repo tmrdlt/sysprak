@@ -122,13 +122,22 @@ if (pipe (feld) < 0) {
 
         id_seg_gameparams = _shm_id;
         
+        int status= 0;
+        
+        
         signal(SIGUSR1, think);
-
-        ret_code = wait(NULL);
-
-        if (ret_code < 0) {
-            perror ("Fehler beim Warten auf Connector.");
-            exit(EXIT_FAILURE);
+        
+        
+        while(status!= 42){
+          
+            ret_code = waitpid(0, &status,0);
+            if (ret_code < 0) {
+                perror ("Fehler beim Warten auf Connector.");
+                exit(EXIT_FAILURE);
+            }
+            
+          //  printf("Status: %c \n" , status);
+            
         }
         
         printf("beende Thinker\n");
@@ -139,6 +148,7 @@ if (pipe (feld) < 0) {
     }else{
         printf("Hi hier ist der Connector (Kindprozess)\n");
        // shmdata->process_id_connector = pid;
+
 
 
        // sleep(10);
