@@ -18,27 +18,21 @@
 #include "string_helper.h"
 #include "court_helper.h"
 
-void think_nxt_move(field **court , int time_in_s, int max_size_court,char my_color);
-
-void think_nxt_move_white(field **court , int time_in_s, int max_size_court,char my_color,char *move);
-
-void think_nxt_move_black(field **court , int time_in_s, int max_size_court,char my_color,char *move);
+void think_nxt_move(field court[COURT_SIZE][COURT_SIZE]  , int time_in_s, int max_size_court,char my_color, char opponent_color);
 
 bool char_cmp_ignore_case(char char_1 , char char_2);
 
-void build_move(char *old_pos, char *new_pos, char *dest);
-
 void think();
 
-char *check_lower_right(field **court,int max_size_court, int i, int j);
+int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[4], int must_bash);
 
-char *check_lower_left(field **court,int max_size_court, int i, int j);
+int check_safe(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court, int i, int j, char opponent_color );
 
-char *check_upper_right(field **court,int max_size_court, int i, int j);
-
-char *check_upper_left(field **court,int max_size_court, int i, int j);
+int check_covered(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court, int i, int j, char my_color , int old_i , int old_j);
 
 extern int fd;
+
+extern int id_seg_gameparams;
 
 
 //void print_court(field **court, int size);
