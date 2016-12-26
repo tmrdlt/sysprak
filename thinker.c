@@ -25,10 +25,10 @@ int id_seg_gameparams;
 //    test_thinker();
 //}
 
-void think(int sig){
+void think(){
 
-    printf("Signal: %d received\n", sig);
-    
+  
+
     game_state *_game_state = address_shm(id_seg_gameparams);
 
     if(_game_state->flag_thinking){

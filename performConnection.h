@@ -9,7 +9,7 @@
 #ifndef performConnection_h
 #define performConnection_h
 
-#define _POSIX_SOURCE
+#define _POSIX_SOURCE 3
 
 #include <stdbool.h>
 #include <stdio.h>

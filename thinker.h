@@ -22,7 +22,7 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE]  , int time_in_s, int ma
 
 bool char_cmp_ignore_case(char char_1 , char char_2);
 
-void think(int sig);
+void think();
 
 int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[4], int must_bash);
 

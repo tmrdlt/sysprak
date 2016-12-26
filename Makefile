@@ -1,5 +1,5 @@
 CC = /usr/bin/gcc
-CFLAGS = -Wall -Wextra -Wpedantic -g -std=c99
+CFLAGS = -Wcpp -Wall -Wextra -Wpedantic -g -std=c99
 LDFLAGS = -lm -lpthread
 LDLIBS = -lm
 

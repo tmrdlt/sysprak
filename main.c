@@ -1,4 +1,7 @@
 #define _POSIX_C_SOURCE 2
+#define _XOPEN_SOURCE 2
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +31,20 @@ void printHelp() {
 	printf("-f: OPTIONAL, use this to specify a config file\n");
 }
 
+// Signal Handler um SIGUSR1 und ctr + c abzufangen
+void handle_signal(int sig) {
+		switch (sig) {
+			case SIGUSR1:
+			printf("Signal Number %d (SIGUSR1) recieved\n", sig);
+			think();
+			break;
+			case SIGINT:
+			printf("\nSignal Number %d (SIGINT) recieved\n", sig);
+			printf("Program terminated by User\n");
+			break;
+		}
+}
+
 int player_number = -1;               //hier kann die -p flag gespeichert werden
 char *game_id;                        //hier kann die -g flag gespeichert werden
 char *filename;                       //hier kann die -f flag gespeichert werden
@@ -35,7 +52,7 @@ char standard_filename[] = "client.conf";     //standard_filename
 
 int main(int argc, char *argv[]) {
 
-	pid_t cpid, w;                    //Prozess-ID des Kindprozesses
+	pid_t cpid, ppid, w;                    //Prozess-ID des Kindprozesses
 	filename = standard_filename;
 
 	// flag Verwaltung über getopt
@@ -56,7 +73,6 @@ int main(int argc, char *argv[]) {
 			printHelp();
 			return EXIT_FAILURE;
 		}
-
 	}
 
 	// hat die GameId wirklich 13 Stellen?
@@ -88,6 +104,8 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
+	//Elternpid bestimmen
+	ppid = getpid();
 	// Aufspaltung in zwei Prozesse über fork()
 	cpid = fork();
 
@@ -99,7 +117,8 @@ int main(int argc, char *argv[]) {
 
 	//Kindprozess
 	if (cpid == 0) {
-		printf("Hi hier ist der Connector (Kindprozess)\n");
+
+		printf("Connector (Kindprozess), PID: %ld\n", (long) getpid());
 		// shmdata->process_id_connector = pid;
 
 		int _fd = connect_to_server();
@@ -115,14 +134,17 @@ int main(int argc, char *argv[]) {
 		performConnection(_fd, _shm_id);
 
 		printf("Id connector %d \n", shmdata->process_id_connector);
+
+
 		printf("beende Connector\n");
-		exit(42);
+
+		exit(EXIT_SUCCESS);
 		//  shmdata = address_shm (shm_id);
 		//printf("Id thinker %d \n" , shmdata->process_id_thinker);
 
 	//Elternprozess
 	} else {
-		printf("Hi hier ist der Thinker (Elternprozess)\n");
+		printf("Thinker (Elternprozess), PID: %ld\n", (long) ppid);
 		//shmdata->process_id_thinker = pid;
 
 		//Leseseite schliessen
@@ -138,7 +160,8 @@ int main(int argc, char *argv[]) {
 		int status; //Zum Abfangen des Status vom Kindprozess in waitpid
 
 		again:
-		signal(SIGUSR1, think);
+		signal(SIGUSR1, handle_signal);
+		signal(SIGINT, handle_signal);
 
 		do {
 			w = waitpid(cpid, &status, 0);
@@ -151,7 +174,7 @@ int main(int argc, char *argv[]) {
 			}
 
 			if (WIFEXITED(status)) {
-				printf("Child terminated normally, status: %d\n", WEXITSTATUS(status));
+				printf("Child terminated normally with status: %d\n", WEXITSTATUS(status));
 				}
 		// so lange warten bis child normal terminiert, also WIFEXITED == TRUE
 		} while (!WIFEXITED(status));

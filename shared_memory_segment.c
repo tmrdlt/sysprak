@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE
 #include<sys/types.h>
 #include<sys/ipc.h>
 #include<sys/shm.h>
@@ -9,7 +10,7 @@
 
 //Anlegen von SHM
 int shm_id (int size) {
-    
+
     int shm_id;
     shm_id = shmget(IPC_PRIVATE, size, IPC_CREAT| 0777);
     if(shm_id < 0) {
@@ -21,7 +22,7 @@ int shm_id (int size) {
 
 //Anbinden von SHM
 void *address_shm (int shm_id) {
-    
+
     void *address_shm;
     address_shm = shmat (shm_id, (void*)0, 0);
     if(address_shm < (void*)0) {
@@ -38,7 +39,7 @@ int dettach_shm (void *address){
         return -1;}
     return 0;
 }
-	
+
 	/*int delete_shm (it shm_id) {
 	struct shmid_ds *buf;
 	if(shmctl (shm_id, IPC_RMID, buf) < 0) {
@@ -47,7 +48,7 @@ int dettach_shm (void *address){
 	}
 	return 0;
 }
-	
+
 	//Ablegen von Daten in SHM
 	void write_in_shm(char *address_shm){
 		for (game.player_count=!0 ; game.player_count--)
