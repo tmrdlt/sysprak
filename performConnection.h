@@ -9,12 +9,16 @@
 #ifndef performConnection_h
 #define performConnection_h
 
+#define _POSIX_SOURCE
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include<signal.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include "config.h"
 #include "string_helper.h"
