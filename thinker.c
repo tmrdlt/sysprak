@@ -72,7 +72,7 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
                 check_field(court, max_size, i, j, my_color, opponent_color, mv, 0);
 
 
-                for(int n = 0; n < 12; n++){
+                for(int n = 0; n < 4; n++){
                     if(mv[n].value > MOVE_ILLEGAL){
                         rated_moves[count_legal_moves++] = mv[n];
                     }
@@ -103,14 +103,6 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
         perror ("Fehler beim schreiben in pipe.");
         exit(EXIT_FAILURE);
     }
-
-//    int ret_code = waitpid(pid, NULL,0);
-//
-//    if (ret_code < 0) {
-//        perror ("Fehler beim Warten auf Connector.");
-//        exit(EXIT_FAILURE);
-//    }
-
 
 }
 
@@ -159,9 +151,9 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
  * TODO: Ausstehend zyklische Spielzüge sind aktuell nicht möglich da die Türme (der ziehende und die geschlagenen) noch im alten Feld stehen
  */
 int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color){
+    
     // Finde das Feld hinter dem gegner
     int next_i , next_j;
-    int return_code = 0;
     if(n < i_feld) next_i = n -1 ; else next_i = n + 1;
     if(k < j_feld) next_j = k -1 ; else next_j = k + 1;
     
@@ -193,9 +185,9 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
                 for(int y = next_j-1 ; y < next_j+2 ; y++){
                     if(y == next_j) continue; // die felder direkt neben, davor oder dahinter müssen nicht geprüft werden
                     //prüfe auf index überlauf
-                    if (n < max_size && k < max_size && n >= 0 && k >= 0 ){
+                    if (x < max_size && y < max_size && x >= 0 && y >= 0 ){
                         //Prüfe ob ein gegnerischer Turm im feld steht
-                        if(char_cmp_ignore_case(court[n][k].towers[strlen(court[n][k].towers)-1] , opponent_color)){
+                        if(char_cmp_ignore_case(court[x][y].towers[strlen(court[x][y].towers)-1] , opponent_color)){
                             
                             //Rekursion zur Erstellung eines Mehrzügigen Spielzugs
                             //180 Grad Spielzug muss momentan nicht geprüft werden, da im alten Feld der Turm noch steht
@@ -218,7 +210,7 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
         }
     }
     
-    return return_code;
+    return 0;
 }
 
 
