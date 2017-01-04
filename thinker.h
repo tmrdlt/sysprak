@@ -24,9 +24,9 @@ bool char_cmp_ignore_case(char char_1 , char char_2);
 
 void think();
 
-int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[12], int must_bash);
+int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[4], int must_bash);
 
-int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[12], int index, char my_color, char opponent_color);
+int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color);
 
 
 int check_safe(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court, int i, int j, char opponent_color );

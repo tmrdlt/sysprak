@@ -61,8 +61,8 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
 
             if(court[i][j].towers[strlen(court[i][j].towers)-1] == my_color){
                 //init drafts
-                move_value mv[12];
-                for(int n = 0; n < 12; n++){
+                move_value mv[4];
+                for(int n = 0; n < 4; n++){
                     mv[n].value = MOVE_ILLEGAL;
                     strcpy(mv[n].move_id, court[i][j].field_id);
 
@@ -115,7 +115,7 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
 }
 
 //Bewerte alle Möglichkeiten eines Feldes - return 1 wenn schlagender möglich
-int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[12], int must_bash){
+int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[4], int must_bash){
     int bashing = 0;
     int index = 0;
 
@@ -133,9 +133,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
                     strcat(mv[index].move_id, ":");
                     strcat(mv[index].move_id ,court[n][k].field_id);
 
-                    mv[index].old_i = i_feld; mv[index].old_j = j_feld; mv[index].new_i = n; mv[index].new_j = k;
-
-                    //Zug bewerten
+                     //Zug bewerten
                     mv[index].value += check_safe(court, max_size, n, k, opponent_color) + check_covered(court, max_size, n, k, my_color, i_feld, j_feld);
                     if (n > i_feld) mv[index].value =MOVE_ILLEGAL;
                     else mv[index].value += MOVE_FOR;
@@ -160,9 +158,10 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
  * Ausgliederung für rekursiven Aufruf nach schlagendem Teilzug
  * TODO: Ausstehend zyklische Spielzüge sind aktuell nicht möglich da die Türme (der ziehende und die geschlagenen) noch im alten Feld stehen
  */
-int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[12], int index, char my_color, char opponent_color){
+int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color){
     // Finde das Feld hinter dem gegner
     int next_i , next_j;
+    int return_code = 0;
     if(n < i_feld) next_i = n -1 ; else next_i = n + 1;
     if(k < j_feld) next_j = k -1 ; else next_j = k + 1;
     
@@ -174,31 +173,44 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
             strcat(mv[index].move_id, ":");
             strcat(mv[index].move_id ,court[next_i][next_j].field_id);
             
-            mv[index].old_i = i_feld; mv[index].old_j = j_feld; mv[index].new_i = next_i; mv[index].new_j = next_j;
             // Bewerte zug
             mv[index].value +=  MOVE_BASHING + check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, n, k);
             if (n > i_feld ) mv[index].value +=  MOVE_BACK;
             else mv[index].value += MOVE_FOR;
             
-            //Checke nach schlagendem Teilzug ob ein weiterer Stein geschlagen werden kann
+            //Suche und bewerte alle weiteren möglichen Teilzüge:
+            //erstellt zunächst kopien des berechneten Zuges um später vergleichen zu können
+            move_value mv_nxt[4];
+            for(int i = 0 ; i < 4; i++){
+                strcpy(mv_nxt[i].move_id ,mv[index].move_id);
+                mv_nxt[i].value = mv[index].value;
+            }
+            // index für die neuen Züge
+            int index_rec = 0;
+            //Iteriere über die 4 möglichen Felder
             for(int x = next_i -1 ; x < next_i +2 ; x++){
                 if(x == next_i) continue; // die felder direkt neben, davor oder dahinter müssen nicht geprüft werden
                 for(int y = next_j-1 ; y < next_j+2 ; y++){
                     if(y == next_j) continue; // die felder direkt neben, davor oder dahinter müssen nicht geprüft werden
-                    
+                    //prüfe auf index überlauf
                     if (n < max_size && k < max_size && n >= 0 && k >= 0 ){
-                        
+                        //Prüfe ob ein gegnerischer Turm im feld steht
                         if(char_cmp_ignore_case(court[n][k].towers[strlen(court[n][k].towers)-1] , opponent_color)){
                             
                             //Rekursion zur Erstellung eines Mehrzügigen Spielzugs
                             //180 Grad Spielzug muss momentan nicht geprüft werden, da im alten Feld der Turm noch steht
-                            if(check_bashing(court, max_size, x, y, next_i, next_j, mv, index, my_color , opponent_color) == 1){
-                                index++;
-                            }
-                            
+                            check_bashing(court, max_size, x, y, next_i, next_j, mv_nxt, index_rec, my_color , opponent_color);
+                            index_rec++;
                         }
                     }
 
+                }
+            }
+            //prüfe den besten weiteren schlagenden Teilzug
+            for(int i = 0; i < 4; i ++ ){
+                if(mv_nxt[i].value > mv[index].value){
+                    //setze den neuen Zug
+                    mv[index] = mv_nxt[i];
                 }
             }
             
@@ -206,7 +218,7 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
         }
     }
     
-    return 0;
+    return return_code;
 }
 
 

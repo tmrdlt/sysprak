@@ -27,7 +27,6 @@ typedef struct {
     int value;
     char move_id[MAX_DRAFT_LENGTH];
     
-    int new_i, new_j, old_i, old_j;
     
 }move_value;
 
