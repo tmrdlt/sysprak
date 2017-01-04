@@ -148,7 +148,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
 
 /**
  * Ausgliederung für rekursiven Aufruf nach schlagendem Teilzug
- * TODO: Ausstehend zyklische Spielzüge sind aktuell nicht möglich da die Türme (der ziehende und die geschlagenen) noch im alten Feld stehen
+ * TODO: Test ob zyklische Züge mit der einfachen Flag f_would_be_empty korrekt berechnet werden
  */
 int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int k , int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color){
     
@@ -161,9 +161,13 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
     if(next_i < max_size && next_j < max_size && next_i >= 0 && next_j >= 0){
         
         //Prüfe ob Feld hinter Gegner Leer
-        if(strstr(court[next_i][next_j].towers,"_")){
+        if(strstr(court[next_i][next_j].towers,"_") || court[next_i][next_j].f_would_be_empty == 1){
             strcat(mv[index].move_id, ":");
             strcat(mv[index].move_id ,court[next_i][next_j].field_id);
+            
+            //setze die beiden Felder (das Alte und geschlagene) auf leer
+            court[n][k].f_would_be_empty = 1;
+            court[i_feld][j_feld].f_would_be_empty = 1;
             
             // Bewerte zug
             mv[index].value +=  MOVE_BASHING + check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, n, k);
@@ -186,11 +190,12 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
                     if(y == next_j) continue; // die felder direkt neben, davor oder dahinter müssen nicht geprüft werden
                     //prüfe auf index überlauf
                     if (x < max_size && y < max_size && x >= 0 && y >= 0 ){
-                        //Prüfe ob ein gegnerischer Turm im feld steht
-                        if(char_cmp_ignore_case(court[x][y].towers[strlen(court[x][y].towers)-1] , opponent_color)){
+                        
+                        //Prüfe ob ein gegnerischer Turm im feld steht und noch nicht in einem vorherigem Zug geschlagen worden wäre
+                        if(char_cmp_ignore_case(court[x][y].towers[strlen(court[x][y].towers)-1] , opponent_color)
+                           && court[x][y].f_would_be_empty != 1){
                             
                             //Rekursion zur Erstellung eines Mehrzügigen Spielzugs
-                            //180 Grad Spielzug muss momentan nicht geprüft werden, da im alten Feld der Turm noch steht
                             check_bashing(court, max_size, x, y, next_i, next_j, mv_nxt, index_rec, my_color , opponent_color);
                             index_rec++;
                         }
@@ -206,6 +211,9 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, int n , int 
                 }
             }
             
+            //setze die beiden Felder (das Alte und geschlagene) wieder auf nicht leer
+            court[n][k].f_would_be_empty = 0;
+            court[i_feld][j_feld].f_would_be_empty = 0;
             return 1;
         }
     }
