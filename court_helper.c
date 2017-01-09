@@ -1,13 +1,11 @@
-
 #include "court_helper.h"
 
-
+#define UNICODE 0 //Variable, die steuert ob Spielfeld in Unicode zeichen gedruckt werden soll oder nicht (geht z.B. unter Mac nicht)
 
 // struct field besetzen: mit den field_ids (A8, B8, usw.) und mit . _ . _ usw.
 void set_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
 
         // wenn der client weiß ist (player_id = 0):
-
         if(player_id == 0) {
                 // field_ids setzen
                 for (int i=0; i<size; i++) {
@@ -31,9 +29,7 @@ void set_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                                 court[2*i+1][2*j].towers[1] = '\0';
                         }
                 }
-
                 // wenn der client schwarz ist (player_id = 1):
-
         } else {
                 // field_ids setzen
                 for (int i=0; i<size; i++) {
@@ -57,17 +53,13 @@ void set_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                                 court[2*i+1][2*j].towers[1] = '\0';
                         }
                 }
-
         }
-
-
 }
 
 
-
 void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
-        char field_id_draft[3] = {draft[2], draft[3], '\0'};
 
+        char field_id_draft[3] = {draft[2], draft[3], '\0'};
         char zug[2] = {draft[0], '\0'};
 
         for (int i = 0; i < COURT_SIZE; i++) {
@@ -83,12 +75,10 @@ void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
                         }
                 }
         }
-
 }
 
 
 void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
-int unicode = 1;
 
         printf("\n   ╭─┬─┬─┬─┬─┬─┬─┬─╮\n");
         printf("   │A│B│C│D│E│F│G│H│\n");
@@ -100,38 +90,32 @@ int unicode = 1;
                         printf("│%d│ ", 8-i);
                         for(int j=0; j<size; j++) {
                                 int len = (int)strlen(court[i][j].towers);
-                                if (unicode == 1) {
-                                print_unicode(court[i][j].towers[len-1]);
-                              } else {
-                                printf("%c ", court[i][j].towers[len-1]);
-                              }
-
-                            //
-
+                                if (UNICODE == 1) {
+                                        print_unicode(court[i][j].towers[len-1]);
+                                } else {
+                                        printf("%c ", court[i][j].towers[len-1]);
+                                }
                         }
                         printf("│%d│\n", 8-i);
                 }
-                // wenn der client schwarz ist (player_id = 1):
+        // wenn der client schwarz ist (player_id = 1):
         } else {
                 for(int i=(size-1); i>=0; i--) {
                         printf("│%d│ ", i);
                         for(int j=(size-1); j>=0; j--) {
                                 int len = (int)strlen(court[i][j].towers);
-                                if (unicode == 1) {
-                                print_unicode(court[i][j].towers[len-1]);
-                              } else {
-                                printf("%c ", court[i][j].towers[len-1]);
-                              }
+                                if (UNICODE == 1) {
+                                        print_unicode(court[i][j].towers[len-1]);
+                                } else {
+                                        printf("%c ", court[i][j].towers[len-1]);
+                                }
                         }
                         printf("│%d│\n", i);
                 }
-
-
         }
         printf("╰─┴┬─┬─┬─┬─┬─┬─┬─┬─┬┴─╯\n");
         printf("   │A│B│C│D│E│F│G│H│\n");
         printf("   ╰─┴─┴─┴─┴─┴─┴─┴─╯\n");
-
 
         printf("\nWhite Towers\n");
         printf("============\n");
@@ -140,10 +124,13 @@ int unicode = 1;
                         int len = (int)strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'W' || court[i][j].towers[len-1] == 'w') {
                                 printf("%s: ", court[i][j].field_id);
-                                printf("%s",court[i][j].towers);
-                                /*for (int k = 0; k < len; k++) {
-                                        print_unicode(court[i][j].towers[k]);
-                                }*/
+                                if (UNICODE == 1) {
+                                        for (int k = 0; k < len; k++) {
+                                                print_unicode(court[i][j].towers[k]);
+                                        }
+                                }else{
+                                        printf("%s",court[i][j].towers);
+                                }
                                 printf("\n");
                         }
                 }
@@ -156,19 +143,23 @@ int unicode = 1;
                         int len = (int) strlen(court[i][j].towers);
                         if (court[i][j].towers[len-1] == 'B' || court[i][j].towers[len-1] == 'b') {
                                 printf("%s: ", court[i][j].field_id);
-                                printf("%s",court[i][j].towers);
-                                /*for (int k = 0; k < len; k++) {
-                                        print_unicode(court[i][j].towers[k]);
-                                }*/
+                                if (UNICODE == 1) {
+                                        for (int k = 0; k < len; k++) {
+                                                print_unicode(court[i][j].towers[k]);
+                                        }
+                                }else{
+                                        printf("%s",court[i][j].towers);
+                                }
                                 printf("\n");
                         }
                 }
         }
-
 }
 
 
+//Methode um chars in diesen Unicode zeichen auszugeben
 void print_unicode(char _char) {
+
         switch (_char) {
         case 'w': printf("⛀ ");
                 break;
@@ -183,36 +174,4 @@ void print_unicode(char _char) {
         case '_': printf("_ ");
                 break;
         }
-
-}
-
-
-
-
-int main2() {
-
-
-        field court[COURT_SIZE][COURT_SIZE];
-
-        int player_id = 1; //weiß
-        set_court(court, COURT_SIZE, player_id);
-        char draft[] = "W@B6";
-        char draft1[] = "w@B6";
-        char draft2[] = "B@D6";
-        char draft3[] = "b@D6";
-        set_draft(court, draft);
-        set_draft(court, draft1);
-        set_draft(court, draft2);
-        set_draft(court, draft3);
-        print_court(court, COURT_SIZE, 0);
-
-
-
-
-
-
-        //      printf("%s\n", court[i][j].field_id);
-
-        return 1;
-
 }
