@@ -20,6 +20,8 @@
 
 typedef enum {UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT} direction;
 
+bool tower_is_dame(char tower);
+
 field next_field(direction dir , field court[COURT_SIZE][COURT_SIZE], int i , int j,int max_size, int *new_i, int *new_j);
 
 void think_nxt_move(field court[COURT_SIZE][COURT_SIZE]  , int time_in_s, int max_size_court,char my_color, char opponent_color);
@@ -32,7 +34,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, i
 
 int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color);
 
-int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv, char my_color, char opponent_color);
+int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv, char my_color, char opponent_color, int must_bash);
 
 int check_safe(field court[COURT_SIZE][COURT_SIZE],int max_size_court, int i_field, int j_field, char opponent_color);
 

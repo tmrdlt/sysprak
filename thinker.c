@@ -56,21 +56,36 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
         for(int j = 0 ; j < max_size && passed_time < allowed_time; j ++){
 
             if(court[i][j].towers[strlen(court[i][j].towers)-1] == my_color){
-                //init drafts
-                move_value mv[4];
-                for(int n = 0; n < 4; n++){
-                    mv[n].value = MOVE_ILLEGAL;
-                    strcpy(mv[n].move_id, court[i][j].field_id);
+                
+                if(tower_is_dame(court[i][j].towers[strlen(court[i][j].towers)-1])){
+                    
+                    
+                    for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
+                        move_value mv;
+                        check_dame(court, max_size, dir, i, j, mv,  my_color, opponent_color, 0);
+                        if(mv.value > MOVE_ILLEGAL){
+                            rated_moves[count_legal_moves++] = mv;
+                        }
+                    }
+                    
+                    
+                }else{
+                    //init drafts
+                    move_value mv[4];
+                    for(int n = 0; n < 4; n++){
+                        mv[n].value = MOVE_ILLEGAL;
+                        strcpy(mv[n].move_id, court[i][j].field_id);
 
-                }
+                    }
 
 
-                check_field(court, max_size, i, j, my_color, opponent_color, mv, 0);
+                    check_field(court, max_size, i, j, my_color, opponent_color, mv, 0);
 
 
-                for(int n = 0; n < 4; n++){
-                    if(mv[n].value > MOVE_ILLEGAL){
-                        rated_moves[count_legal_moves++] = mv[n];
+                    for(int n = 0; n < 4; n++){
+                        if(mv[n].value > MOVE_ILLEGAL){
+                            rated_moves[count_legal_moves++] = mv[n];
+                        }
                     }
                 }
             }
@@ -106,7 +121,7 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
 /*
  * Damen Zug rekusive Iteration diagonal in eine Richtung über das Spielfeld
  */
-int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv, char my_color, char opponent_color){
+int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv, char my_color, char opponent_color, int must_bash){
     
     int next_i, next_j;
     field next = next_field(dir, court, i_feld, j_feld, max_size, &next_i, &next_j);
@@ -114,23 +129,26 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
     if (next.field_id[0] !='x'){
         
         
-        if(strstr(next.towers,"_") || next.f_would_be_empty == 1){
-           
-            //bewerte möglichen Zug
-            mv.value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
-            
-            if (dir >= LOWER_LEFT) mv.value +=  MOVE_BACK;
-            else mv.value += MOVE_FOR;
+        if(strstr(next.towers,"_") || next.f_would_be_empty == 1 ){
             
             move_value rate_nxt_move;
             
             strcpy(rate_nxt_move.move_id, mv.move_id);
             
-            strcat(mv.move_id, ":");
-            strcat(mv.move_id, next.field_id);
+            if(must_bash != 1){
+                //bewerte möglichen Zug
+                mv.value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
+            
+                //Damen zug nach hinten ist genauso wertvoll wie nach vorne
+                if (dir >= LOWER_LEFT) mv.value +=  MOVE_FOR;
+                else mv.value += MOVE_FOR;
+                strcat(mv.move_id, ":");
+                strcat(mv.move_id, next.field_id);
+                strcat(mv.move_id,"\0");
+            }
             
             //prüfe weiter in selber Richtung
-            check_dame(court, max_size, dir, next_i, next_j, rate_nxt_move,  my_color, opponent_color);
+            check_dame(court, max_size, dir, next_i, next_j, rate_nxt_move,  my_color, opponent_color, must_bash);
             
             //teste ob Zug ins nächste Feld besser bewertet wäre
             if(rate_nxt_move.value > mv.value){
@@ -141,15 +159,45 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             //find field behind
             int i_behind, j_behind;
             field field_behind;
-            
+            move_value tmp_mv;
+            tmp_mv.value = mv.value;
+            strcpy(tmp_mv.move_id, mv.move_id);
             
             while ((field_behind = next_field(dir, court, next_i, next_j, max_size, &i_behind, &j_behind)).field_id[0] != 'x') {
                 if(!strstr(field_behind.towers,"_") && field_behind.f_would_be_empty != 1){
                     break;
                 
                 }else{
+                    move_value tmp_mv_rec;
+                    tmp_mv_rec.value = mv.value;
+                    strcpy(tmp_mv_rec.move_id, mv.move_id);
                     
+                    //build move id
+                    strcat(tmp_mv_rec.move_id, ":");
+                    strcat(tmp_mv_rec.move_id ,next.field_id);
+                    strcat(tmp_mv_rec.move_id, "\0");
+                    
+                    
+                    //Damen zug nach hinten ist genauso wertvoll wie nach vorne
+                    if (dir >= LOWER_LEFT) tmp_mv_rec.value +=  MOVE_FOR;
+                    else tmp_mv_rec.value += MOVE_FOR;
+                    
+                    //rate
+                    tmp_mv_rec.value += check_safe(court, max_size, i_behind, j_behind, opponent_color) + check_covered(court, max_size, i_behind, j_behind , my_color, dir);
+                    
+                    //rec check 4 directions
+                    for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
+                        check_dame(court, max_size, dir, i_behind, j_behind, tmp_mv_rec,  my_color, opponent_color, 1);
+                        
+                        if(tmp_mv_rec.value > tmp_mv.value){
+                            tmp_mv = tmp_mv_rec;
+                        }
+                    }
                 }
+            }
+            
+            if(tmp_mv.value > mv.value){
+                mv = tmp_mv;
             }
             
             return 1;
@@ -183,6 +231,8 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
                     //Zug bauen
                     strcat(mv[index].move_id, ":");
                     strcat(mv[index].move_id, next.field_id);
+                    strcat(mv[index].move_id, "\0");
+                    
 
                      //Zug bewerten
                     mv[index].value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j , my_color, dir);
@@ -223,6 +273,7 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
         if(strstr(next.towers,"_") || next.f_would_be_empty == 1){
             strcat(mv[index].move_id, ":");
             strcat(mv[index].move_id ,next.field_id);
+            strcat(mv[index].move_id, "\0");
             
             //setze die beiden Felder (das Alte und geschlagene) auf leer
             next.f_would_be_empty = 1;
@@ -345,6 +396,10 @@ field next_field(direction dir , field court[COURT_SIZE][COURT_SIZE], int i, int
         empty_field.field_id[0] = 'x';
         return empty_field;
     }
+}
+
+bool tower_is_dame(char tower){
+    return (tower == 'B' || tower == 'W');
 }
 
 
