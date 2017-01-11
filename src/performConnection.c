@@ -376,22 +376,24 @@ phase handle_draft(phase_data *data ){
 
         printf("Signal send\n");
         char puffer[128];
-
-        if (read(fd_pipe_thinker, puffer, 128) < 0){
+        ssize_t size = read(fd_pipe_thinker, puffer, 128);
+        if (size < 0){
             perror ("Fehler bei lesen aus pipe).");
             exit(EXIT_FAILURE);
         }
+        printf("%d\n", (int)size);
+        puffer[size] = '\0';
 
         printf("Move received\n");
         printf("Berechneter Zug %s\n", puffer);
-        
+
         char *play_msg = create_msg_play(puffer);
-        
+
         if( send_to_gameserver(data->fd, play_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
             quit = true;
         }
-        
+
     }
 
 
