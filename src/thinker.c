@@ -169,7 +169,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             strcpy(tmp_mv.move_id, mv.move_id);
 
             while ((field_behind = next_field(dir, court, next_i, next_j, max_size, &i_behind, &j_behind)).field_id[0] != 'x') {
-                if(!strstr(field_behind.towers,"_") && field_behind.f_would_be_empty != 1){
+                if(!strstr(field_behind.towers,"_") || field_behind.f_would_be_empty != 1){
                     break;
 
                 }else{
@@ -191,8 +191,8 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     tmp_mv_rec.value += check_safe(court, max_size, i_behind, j_behind, opponent_color) + check_covered(court, max_size, i_behind, j_behind , my_color, dir);
 
                     //rec check 4 directions
-                    for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
-                        check_dame(court, max_size, dir, i_behind, j_behind, tmp_mv_rec,  my_color, opponent_color, 1);
+                    for(direction dir_rec = UPPER_LEFT ; dir_rec <= LOWER_RIGHT ; dir_rec++){
+                        check_dame(court, max_size, dir_rec, i_behind, j_behind, tmp_mv_rec,  my_color, opponent_color, 1);
 
                         if(tmp_mv_rec.value > tmp_mv.value){
                             tmp_mv = tmp_mv_rec;
