@@ -1,25 +1,37 @@
-CC = /usr/bin/gcc
-CFLAGS = -Wcpp -Wall -Wextra -Wpedantic -g -std=c99
-LDFLAGS = -lm -lpthread
-LDLIBS = -lm
+CC       = /usr/bin/gcc
+# compiling flags here
+CFLAGS   = -std=c99 -Wall -I. -Wcpp -Wextra -Wpedantic
+LINKER   = gcc -o
+# linking flags here
+LFLAGS   = -Wall -I. -lm
+# standard make target
+TARGET   = client
+# subdirectories
+SRCDIR   = src
+OBJDIR   = obj
+BINDIR   = bin
+# variables
+GAMEID   = 123gameid1234 	# -g flag (REQUIRED)
+PLAYER   = 1							# -p flag (OPTIONAL)
+CONFIG   = client.conf		# -f flag (OPTIONAL)
 
-# Variablen:
-GAMEID = 123gameid1234 	# -g flag (REQUIRED)
-PLAYER = 1							# -p flag (OPTIONAL)
-CONFIG = client.conf		# -f flag (OPTIONAL)
+SOURCES  := $(wildcard $(SRCDIR)/*.c)
+INCLUDES := $(wildcard $(SRCDIR)/*.h)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+rm       = rm -f
 
-OBJ = config.o msg_creator.o string_helper.o performConnection.o connect_to_server.o shared_memory_segment.o thinker.o court_helper.o
-SRC = $(OBJ:%.o=%.c)
-HDR = $(OBJ:%.o=%.h) bashni_structs.h
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LINKER) $@ $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
 
-client: $(OBJ) main.c
-		$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) main.c $(LDLIBS)
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
 
 play: client
-		./$< -g $(GAMEID)
-
-
+			./$< -g $(GAMEID)
 
 .PHONY: clean
 clean:
-		rm -f $(OBJ) play client
+	@$(rm) $(OBJECTS) $(BINDIR)/$(TARGET)
+	@echo "Cleanup complete!"
