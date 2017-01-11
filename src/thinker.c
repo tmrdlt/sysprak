@@ -52,8 +52,8 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
     int count_legal_moves = 0;
 
     //rate all possible drafts
-    for(int i = 0 ; i < max_size && passed_time < allowed_time; i ++){
-        for(int j = 0 ; j < max_size && passed_time < allowed_time; j ++){
+    for(int i = 0 ; i < max_size; i ++){
+        for(int j = 0 ; j < max_size; j ++){
 
             if(court[i][j].towers[strlen(court[i][j].towers)-1] == my_color){
                 
@@ -149,7 +149,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                 else rate_nxt_move.value += MOVE_FOR;
                 strcat(rate_nxt_move.move_id, ":");
                 strcat(rate_nxt_move.move_id, next.field_id);
-               // strcat(rate_nxt_move.move_id,"\0");
+                strcat(rate_nxt_move.move_id,"\0");
             }
             
             //prüfe weiter in selber Richtung
@@ -180,7 +180,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     //build move id
                     strcat(tmp_mv_rec.move_id, ":");
                     strcat(tmp_mv_rec.move_id ,next.field_id);
-                    //strcat(tmp_mv_rec.move_id, "\0");
+                    strcat(tmp_mv_rec.move_id, "\0");
                     
                     
                     //Damen zug nach hinten ist genauso wertvoll wie nach vorne
@@ -248,7 +248,7 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
 
                     // Wenn Gegner im Feld
                 }else if(char_cmp_ignore_case(next.towers[strlen(next.towers)-1] , opponent_color)){
-                    printf("Gegner im Feld \n");
+                    
                     bashing = check_bashing(court, max_size, dir, next_i, next_j, mv, index, my_color , opponent_color);
                     
                 }else{
@@ -270,12 +270,8 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
     
     int next_i, next_j;
     
-    printf("Gegner in feld: %s \n" , court[i_field][j_field].field_id);
-    
     // Finde das Feld hinter dem gegner
     field next = next_field(dir, court, i_field, j_field, max_size, &next_i, &next_j);
-    
-    printf("Feld hinterm Gegner: %s \n" , next.field_id);
     
     // Falls ein Feld hinter dem Genger existiert
     if (next.field_id[0] !='x' ){
@@ -287,7 +283,9 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
             
             strcat(mv[index].move_id, ":");
             strcat(mv[index].move_id ,next.field_id);
-           // strcat(mv[index].move_id, "\0");
+            strcat(mv[index].move_id, "\0");
+            
+            printf("Move clauclated: %s\n" , mv[index].move_id);
             
             printf("Would bash: %s \n" , mv[index].move_id);
             //setze die beiden Felder (das Alte und geschlagene) auf leer
@@ -307,13 +305,16 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
                 strcpy(mv_nxt[i].move_id ,mv[index].move_id);
                 mv_nxt[i].value = mv[index].value;
             }
+            
+            
             // index für die neuen Züge
             int index_rec = 0;
           
             for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
-                int next_i, next_j;
+                int next_i_rec, next_j_rec;
                 
-                field next_rec = next_field(dir, court, i_field, j_field, max_size, &next_i, &next_j);
+                field next_rec = next_field(dir, court, next_i, next_j, max_size, &next_i_rec, &next_j_rec);
+            
 
                 // return 0 if one can bash ur move
                 if (next_rec.field_id[0] !='x'){
@@ -322,7 +323,7 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
                            && next_rec.f_would_be_empty != 1){
                             
                             //Rekursion zur Erstellung eines Mehrzügigen Spielzugs
-                            check_bashing(court, max_size,dir, next_i, next_j, mv_nxt, index_rec, my_color , opponent_color);
+                            check_bashing(court, max_size,dir, next_i_rec, next_j_rec, mv_nxt, index_rec, my_color , opponent_color);
                             index_rec++;
                         }
                     }
@@ -338,8 +339,8 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
             }
             
             //setze die beiden Felder (das Alte und geschlagene) wieder auf nicht leer
-            next.f_would_be_empty = 1;
-            court[i_field][j_field].f_would_be_empty = 1;
+            next.f_would_be_empty = 0;
+            court[i_field][j_field].f_would_be_empty = 0;
             return 1;
         }
     }
