@@ -180,7 +180,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
             while ((field_behind = next_field(dir, court, next_i, next_j, max_size, &i_behind, &j_behind)).field_id[0] != 'x') {
                 
-                if(!strstr(field_behind.towers,"_") || field_behind.f_would_be_empty != 1){
+                if(!strstr(field_behind.towers,"_") && field_behind.f_would_be_empty != 1){
                     
                      printf("Field behind enemy is not empty: %s\n", field_behind.field_id);
                     
