@@ -135,12 +135,18 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
 
         if(strstr(next.towers,"_") || next.f_would_be_empty == 1 ){
+            
+            printf("Field is empty: %s\n", next.field_id);
 
             move_value rate_nxt_move;
 
             strcpy(rate_nxt_move.move_id, mv.move_id);
 
             if(must_bash != 1){
+                
+                
+                printf("Draft must not bash\n");
+
                 //bewerte möglichen Zug
                 rate_nxt_move.value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
 
@@ -161,6 +167,10 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             }
 
         }else if(char_cmp_ignore_case(next.towers[strlen(next.towers)-1] , opponent_color)){
+            
+            
+            printf("Enemy in field: %s\n", next.field_id);
+
             //find field behind
             int i_behind, j_behind;
             field field_behind;
@@ -169,10 +179,17 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             strcpy(tmp_mv.move_id, mv.move_id);
 
             while ((field_behind = next_field(dir, court, next_i, next_j, max_size, &i_behind, &j_behind)).field_id[0] != 'x') {
+                
                 if(!strstr(field_behind.towers,"_") || field_behind.f_would_be_empty != 1){
+                    
+                     printf("Field behind enemy is not empty: %s\n", field_behind.field_id);
+                    
                     break;
 
                 }else{
+                    
+                    
+                    printf("Field behind enemy is empty: %s\n", field_behind.field_id);
                     move_value tmp_mv_rec;
                     tmp_mv_rec.value = mv.value;
                     strcpy(tmp_mv_rec.move_id, mv.move_id);
@@ -192,9 +209,15 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
                     //rec check 4 directions
                     for(direction dir_rec = UPPER_LEFT ; dir_rec <= LOWER_RIGHT ; dir_rec++){
+                        
+                        
+                        printf("Check Direction: %d for further drafts\n", dir_rec);
+                        
                         check_dame(court, max_size, dir_rec, i_behind, j_behind, tmp_mv_rec,  my_color, opponent_color, 1);
 
                         if(tmp_mv_rec.value > tmp_mv.value){
+                            
+                            printf("New draft: %s (%d),  Old Draft: %s (%d) \n", tmp_mv_rec.move_id , tmp_mv_rec.value, tmp_mv.move_id, tmp_mv.value);
                             tmp_mv = tmp_mv_rec;
                         }
                     }
@@ -203,6 +226,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
             if(tmp_mv.value > mv.value){
                 mv = tmp_mv;
+                printf("Best Dame draft = %s (%d)\n ", mv.move_id , mv.value);
             }
 
             return 1;
