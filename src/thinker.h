@@ -22,7 +22,7 @@ typedef enum {UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT} direction;
 
 bool tower_is_dame(char tower);
 
-field next_field(direction dir , field court[COURT_SIZE][COURT_SIZE], int i , int j,int max_size, int *new_i, int *new_j);
+field* next_field(direction dir , field court[COURT_SIZE][COURT_SIZE], int i , int j,int max_size, int *new_i, int *new_j);
 
 void think_nxt_move(field court[COURT_SIZE][COURT_SIZE]  , int time_in_s, int max_size_court,char my_color, char opponent_color);
 
