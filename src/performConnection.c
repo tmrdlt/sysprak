@@ -36,8 +36,6 @@ phase_func_t* const phase_table[3] = {
  */
 void performConnection(int fd, int _shm_id){
 
-
-
 	//Anlegen von epoll - Instanz
 	if ((efd = epoll_create(2)) == -1)
     {
@@ -64,6 +62,9 @@ void performConnection(int fd, int _shm_id){
     _game_state = address_shm(_shm_id);
 
     while(1){
+    	
+    	for (int i = 0; i < nr_events; i++) {
+			if (fd_pipe_thinker == events[i].data.fd) {
 
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
@@ -103,7 +104,7 @@ void performConnection(int fd, int _shm_id){
             disconnect(fd);
             return;
         }
-    }
+    }}}
     free(events);
     close(efd);
 }
@@ -416,9 +417,7 @@ phase handle_draft(phase_data *data ){
      	perror ("epoll_ctl");
       	abort ();
 		}
-
-		for (int i = 0; i < nr_events; i++) {
-			if (fd_pipe_thinker == events[i].data.fd) {
+		
 			ssize_t size = read(fd_pipe_thinker, puffer, 128);
         	if (size < 0){
             perror ("Fehler bei lesen aus pipe).");
@@ -437,10 +436,10 @@ phase handle_draft(phase_data *data ){
             quit = true;
         }
 
-			}
+			
 	}
 
-  }
+  
 
 
     return new_phase;
