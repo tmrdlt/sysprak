@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 #include "shared_memory_segment.h"
 #include "bashni_structs.h"
 #include "string_helper.h"
@@ -43,6 +44,13 @@ int check_covered(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court,int i_
 extern int fd;
 
 extern int id_seg_gameparams;
+
+void copy_court(field dest[COURT_SIZE][COURT_SIZE] , field src[COURT_SIZE][COURT_SIZE]);
+
+bool randomize_even_drafts();
+
+direction revers_dir(direction d);
+
 
 
 //void print_court(field **court, int size);

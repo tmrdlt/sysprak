@@ -44,7 +44,6 @@ typedef struct{
 typedef struct{
     char field_id[FIELD_ID_SIZE];
     char towers[TOWERS_SIZE];
-    int f_would_be_empty;
 } field;
 
 typedef struct {

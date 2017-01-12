@@ -59,17 +59,20 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
 
                 if(tower_is_dame(court[i][j].towers[strlen(court[i][j].towers)-1])){
 
-                     printf("Is dame: %s!\n", court[i][j].field_id );
+                     //printf("Is dame: %s!\n", court[i][j].field_id );
 
                     for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
                         move_value mv;
                         mv.value = MOVE_ILLEGAL;
                         strcpy(mv.move_id, court[i][j].field_id);
+                        
+                        field tmp_court[COURT_SIZE][COURT_SIZE];
+                        copy_court(tmp_court, court);
                       
-                        check_dame(court, max_size, dir, i, j, &mv,  my_color, opponent_color, 0);
+                        check_dame(tmp_court, max_size, dir, i, j, &mv,  my_color, opponent_color, 0);
                         
                         if(mv.value > MOVE_ILLEGAL){
-                            printf("Move added in stash: %s , (%d)\n" , mv.move_id , mv.value);
+                            //printf("Move added in stash: %s , (%d)\n" , mv.move_id , mv.value);
                             rated_moves[count_legal_moves++] = mv;
                         }
                     }
@@ -107,14 +110,18 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
     //find best rated move
     for(int i = 0 ; i < count_legal_moves && passed_time < allowed_time; i ++){
         if(rated_moves[i].value > best_move.value){
-            printf("%d, better than old(%d)\n" ,rated_moves[i].value,  best_move.value);
+           // printf("%d, better than old(%d)\n" ,rated_moves[i].value,  best_move.value);
             best_move = rated_moves[i];
 
+        } else if(rated_moves[i].value == best_move.value){
+            if(randomize_even_drafts()){
+                best_move = rated_moves[i];
+            }   
         }
     }
 
     // send best move to connector
-    printf("Next Move Found: %s Rating: %d\n" , best_move.move_id, best_move.value);
+    //printf("Next Move Found: %s Rating: %d\n" , best_move.move_id, best_move.value);
     strcat(best_move.move_id, "\0");
     ssize_t bytes_wrote = write(fd, best_move.move_id, strlen(best_move.move_id));
 
@@ -134,12 +141,13 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
     int next_i, next_j;
     field *next = next_field(dir, court, i_feld, j_feld, max_size, &next_i, &next_j);
 
+
     if (next != NULL){
 
 
-        if(strstr(next->towers,"_") || next->f_would_be_empty == 1 ){
+        if(strstr(next->towers,"_")){
             
-           printf("Field is empty: %s\n", next->field_id);
+          // printf("Field is empty: %s\n", next->field_id);
 
             move_value rate_nxt_move;
 
@@ -149,7 +157,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             if(must_bash != 1){
                 
                 
-                printf("Draft must not bash\n");
+                //printf("Draft must not bash\n");
 
                 //bewerte möglichen Zug
                 mv->value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
@@ -161,21 +169,28 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                 strcat(mv->move_id, next->field_id);
                 strcat(mv->move_id,"\0");
             }
+            
+            field tmp_court[COURT_SIZE][COURT_SIZE];
+            copy_court(tmp_court, court);
 
             //prüfe weiter in selber Richtung
-            check_dame(court, max_size, dir, next_i, next_j, &rate_nxt_move,  my_color, opponent_color, must_bash);
+            check_dame(tmp_court, max_size, dir, next_i, next_j, &rate_nxt_move,  my_color, opponent_color, must_bash);
 
             //teste ob Zug ins nächste Feld besser bewertet wäre
             if(rate_nxt_move.value > mv->value){
-                printf("New better Draft found: %s (%d) Old: %s (%d) \n" , rate_nxt_move.move_id , rate_nxt_move.value , mv->move_id , mv->value);
+                //printf("New better Draft found: %s (%d) Old: %s (%d) \n" , rate_nxt_move.move_id , rate_nxt_move.value , mv->move_id , mv->value);
                 mv->value = rate_nxt_move.value;
                 strcpy(mv->move_id, rate_nxt_move.move_id);
+            } else if(rate_nxt_move.value == mv->value){
+                if(randomize_even_drafts()){
+                    mv->value = rate_nxt_move.value;
+                }
             }
 
-        }else if(char_cmp_ignore_case(next->towers[strlen(next->towers)-1] , opponent_color) && next->f_would_be_empty != 1){
+        }else if(char_cmp_ignore_case(next->towers[strlen(next->towers)-1] , opponent_color) ){
             
             
-           printf("Enemy in field: %s Would be empty: %d\n", next->field_id, next->f_would_be_empty);
+          // printf("Enemy in field: %s\n", next->field_id);
 
             //find field behind
             int i_behind = next_i, j_behind = next_j;
@@ -187,9 +202,9 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
             while ((field_behind = next_field(dir, court, i_behind, j_behind, max_size, &i_behind, &j_behind)) != NULL) {
                 
-                if(!strstr(field_behind->towers,"_") && field_behind->f_would_be_empty != 1 ){
+                if(!strstr(field_behind->towers,"_")){
                     
-                     printf("Field behind enemy is not empty: %s\n", field_behind->field_id);
+                    // printf("Field behind enemy is not empty: %s\n", field_behind->field_id);
                     
                     break;
 
@@ -199,7 +214,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     tmp_mv.value = mv->value;
                     strcpy(tmp_mv.move_id, mv->move_id);
                     
-                    printf("Field behind enemy is empty: %s, Would be Empty: %d \n", field_behind->field_id , field_behind->f_would_be_empty);
+                   // printf("Field behind enemy is empty: %s\n", field_behind->field_id);
                 
                     //build move id
                     strcat(tmp_mv.move_id, ":");
@@ -207,9 +222,17 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     strcat(tmp_mv.move_id, "\0");
 
                     //tmp clean Feld des Gegners und altes Feld
-                    next->f_would_be_empty = 1;
-                    court[i_feld][j_feld].f_would_be_empty = 1;
+                    if(strlen(court[next_i][next_j].towers) > 1){
+                        //befreien eines eigenen Steines
+                        court[next_i][next_j].towers[strlen(court[next_i][next_j].towers)-1] = '\0';
+                    }else{
+                        court[next_i][next_j].towers[0] = '_';
+                        court[next_i][next_j].towers[1] = '\0';
+                    }
                     
+                    // altes feld räumen
+                    court[i_feld][j_feld].towers[0] = '_';
+                    court[i_feld][j_feld].towers[1] = '\0';
                     //Rate
                     //schlagender Teilzug
                     tmp_mv.value += MOVE_BASHING;
@@ -231,15 +254,27 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     //rec check 4 directions
                     for(direction dir_rec = UPPER_LEFT ; dir_rec <= LOWER_RIGHT ; dir_rec++){
                         
-                        printf("Check Direction: %d for further drafts\n", dir_rec);
+                        if(dir_rec == revers_dir(dir)){
+                            continue;
+                        }
+
+                        //printf("Check Direction: %d for further drafts\n", dir_rec);
                         
-                        check_dame(court, max_size, dir_rec, i_behind, j_behind, &tmp_mv_rec,  my_color, opponent_color, 1);
+                        field tmp_court[COURT_SIZE][COURT_SIZE];
+                        copy_court(tmp_court, court);
+                        
+                        check_dame(tmp_court, max_size, dir_rec, i_behind, j_behind, &tmp_mv_rec,  my_color, opponent_color, 1);
 
                         if(tmp_mv_rec.value > tmp_mv_result.value){
                             
-                            printf("New draft: %s (%d),  Old Draft: %s (%d) \n", tmp_mv_rec.move_id , tmp_mv_rec.value, tmp_mv.move_id, tmp_mv.value);
+                           // printf("New draft: %s (%d),  Old Draft: %s (%d) \n", tmp_mv_rec.move_id , tmp_mv_rec.value, tmp_mv.move_id, tmp_mv.value);
                             tmp_mv_result.value = tmp_mv_rec.value;
                             strcpy(tmp_mv_result.move_id, tmp_mv_rec.move_id);
+                        } else if(tmp_mv_rec.value == tmp_mv_result.value){
+                            if(randomize_even_drafts()){
+                                tmp_mv_result.value = tmp_mv_rec.value;
+                                strcpy(tmp_mv_result.move_id, tmp_mv_rec.move_id);
+                            }
                         }
                         
                         tmp_mv_rec.value = tmp_mv.value;
@@ -251,14 +286,16 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                 }
             }
             
-            //zurückseetzen des tmp cleans des Feldes des Gegners und des alten Feldes um andere mögliche Züge korrekt zu berechnen
-            next->f_would_be_empty = 0;
-            court[i_feld][j_feld].f_would_be_empty = 0;
 
             if(tmp_mv_result.value > mv->value){
                 mv->value = tmp_mv_result.value;
                 strcpy(mv->move_id, tmp_mv_result.move_id);
-                printf("Best Dame draft = %s (%d)\n ", mv->move_id , mv->value);
+             //   printf("Best Dame draft = %s (%d)\n ", mv->move_id , mv->value);
+            }  else if(tmp_mv_result.value == mv->value){
+                if(randomize_even_drafts()){
+                    mv->value = tmp_mv_result.value;
+                    strcpy(mv->move_id, tmp_mv_result.move_id);
+                }
             }
 
             return 1;
@@ -304,8 +341,10 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
 
                     // Wenn Gegner im Feld
                 }else if(char_cmp_ignore_case(next->towers[strlen(next->towers)-1] , opponent_color)){
+                    field tmp_court[COURT_SIZE][COURT_SIZE];
+                    copy_court(tmp_court, court);
 
-                    bashing = check_bashing(court, max_size, dir, next_i, next_j, mv, index, my_color , opponent_color);
+                    bashing = check_bashing(tmp_court, max_size, dir, next_i, next_j, mv, index, my_color , opponent_color);
 
                 }else{
                     // kein gültiger zug setzte MOVE_ILLEGAL
@@ -320,10 +359,9 @@ int check_field(field court[COURT_SIZE][COURT_SIZE],int max_size, int i_feld, in
 
 /**
  * Ausgliederung für rekursiven Aufruf nach schlagendem Teilzug
- * TODO: Test ob zyklische Züge mit der einfachen Flag f_would_be_empty korrekt berechnet werden
  */
 int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_field, int j_field, move_value mv[4], int index, char my_color, char opponent_color){
-
+    
     int next_i, next_j;
 
     // Finde das Feld hinter dem gegner
@@ -333,20 +371,28 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
     if (next != NULL ){
 
         //Prüfe ob Feld hinter Gegner Leer
-        if(strstr(next->towers,"_") || next->f_would_be_empty == 1){
-
-
+        if(strstr(next->towers,"_") ){
 
             strcat(mv[index].move_id, ":");
             strcat(mv[index].move_id ,next->field_id);
             strcat(mv[index].move_id, "\0");
 
-            printf("Move clauclated: %s\n" , mv[index].move_id);
+//            printf("Move clauclated: %s\n" , mv[index].move_id);
 
-            printf("Would bash: %s \n" , mv[index].move_id);
-            //setze die beiden Felder (das Alte und geschlagene) auf leer
-            next->f_would_be_empty = 1;
-            court[i_field][j_field].f_would_be_empty = 1;
+  //          printf("Would bash: %s \n" , mv[index].move_id);
+           
+            //tmp clean Feld des Gegners und altes Feld
+            if(strlen(court[next_i][next_j].towers) > 1){
+                //befreien eines eigenen Steines
+                court[next_i][next_j].towers[strlen(court[next_i][next_j].towers)-1] = '\0';
+            }else{
+                court[next_i][next_j].towers[0] = '_';
+                court[next_i][next_j].towers[1] = '\0';
+            }
+            
+            // altes feld räumen
+            court[i_field][j_field].towers[0] = '_';
+            court[i_field][j_field].towers[1] = '\0';
 
             // Bewerte zug
             mv[index].value +=  MOVE_BASHING + check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
@@ -366,20 +412,26 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
             // index für die neuen Züge
             int index_rec = 0;
 
-            for(direction dir = UPPER_LEFT ; dir <= LOWER_RIGHT ; dir++){
+            for(direction dir_rec = UPPER_LEFT ; dir_rec <= LOWER_RIGHT ; dir_rec++){
+                
+                if(dir_rec == revers_dir(dir)){
+                    continue;
+                }
+                
                 int next_i_rec, next_j_rec;
 
-                field *next_rec = next_field(dir, court, next_i, next_j, max_size, &next_i_rec, &next_j_rec);
+                field *next_rec = next_field(dir_rec, court, next_i, next_j, max_size, &next_i_rec, &next_j_rec);
 
 
                 // return 0 if one can bash ur move
                 if (next_rec != NULL){
                         //Prüfe ob ein gegnerischer Turm im feld steht und noch nicht in einem vorherigem Zug geschlagen worden wäre
-                        if(char_cmp_ignore_case(next_rec->towers[strlen(next_rec->towers)-1] , opponent_color)
-                           && next_rec->f_would_be_empty != 1){
+                        if(char_cmp_ignore_case(next_rec->towers[strlen(next_rec->towers)-1] , opponent_color)){
 
+                            field tmp_court[COURT_SIZE][COURT_SIZE];
+                            copy_court(tmp_court, court);
                             //Rekursion zur Erstellung eines Mehrzügigen Spielzugs
-                            check_bashing(court, max_size,dir, next_i_rec, next_j_rec, mv_nxt, index_rec, my_color , opponent_color);
+                            check_bashing(tmp_court, max_size, dir_rec, next_i_rec, next_j_rec, mv_nxt, index_rec, my_color , opponent_color);
                             index_rec++;
                         }
                     }
@@ -391,12 +443,13 @@ int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction di
                 if(mv_nxt[i].value > mv[index].value){
                     //setze den neuen Zug
                     mv[index] = mv_nxt[i];
+                } else if(mv_nxt[i].value == mv[index].value){
+                    if(randomize_even_drafts()){
+                        mv[index] = mv_nxt[i];
+                    }
                 }
             }
 
-            //setze die beiden Felder (das Alte und geschlagene) wieder auf nicht leerspr
-            next->f_would_be_empty = 0;
-            court[i_field][j_field].f_would_be_empty = 0;
             return 1;
         }
     }
@@ -500,3 +553,40 @@ bool tower_is_dame(char tower){
 bool char_cmp_ignore_case(char char_1 , char char_2){
     return (char_1 == char_2|| char_1  == char_2+32 || char_1 == char_2 -32);
 }
+
+void copy_court(field dest[COURT_SIZE][COURT_SIZE] , field src[COURT_SIZE][COURT_SIZE]){
+    for(int i = 0 ; i < COURT_SIZE ; i++ ){
+        for (int j = 0; j< COURT_SIZE; j++) {
+            strcpy(dest[i][j].field_id , src[i][j].field_id);
+            strcpy(dest[i][j].towers , src[i][j].towers);
+        }
+    }
+}
+
+
+direction revers_dir(direction dir){
+    switch (dir) {
+        case UPPER_LEFT:
+            return LOWER_RIGHT;
+        case UPPER_RIGHT:
+            return LOWER_LEFT;
+        case LOWER_LEFT:
+            return UPPER_RIGHT;
+        default:
+            return UPPER_LEFT;
+    }
+}
+
+
+bool randomize_even_drafts(){
+    srand((unsigned)time(NULL));
+    int r = rand() % 2;
+    printf("Rand : %d\n" , r);
+    return r == 0;
+}
+
+
+
+
+
+
