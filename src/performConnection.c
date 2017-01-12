@@ -1,7 +1,6 @@
 
 #include "performConnection.h"
 #include "shared_memory_segment.h"
-#include<sys/epoll.h>
 #define BUFFERSIZE 1024
 #define MAX_EVENTS 64
 
@@ -21,9 +20,6 @@ player *players;
 int fd_pipe_thinker;
 
 int game_shm_id;
-int efd, nr_events;
-struct epoll_event event;
-struct epoll_event *events;
 
 phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
@@ -36,35 +32,22 @@ phase_func_t* const phase_table[3] = {
  */
 void performConnection(int fd, int _shm_id){
 
-	//Anlegen von epoll - Instanz
-	if ((efd = epoll_create(2)) == -1)
-    {
-      perror ("epoll_create");
-      abort ();
-    }
+  fd_set readfs;
+  int retval;
 
-    //Hinzufuegen vom File-Deskriptor vom Socket zu dem Set
-    event.data.fd = fd;
-    event.events = EPOLLIN;
-    if ((epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event))  < 0) {
-      perror ("epoll_ctl");
-      abort ();
-	}
+  FD_SET(fd, &readfds);
+  FD_SET(fd_pipe_thinker, &readfds);
 
-	events = malloc (sizeof (struct epoll_event) * MAX_EVENTS);
-	if ((nr_events = epoll_wait (efd, events, MAX_EVENTS, -1)) < 0) {
-        perror ("epoll_wait");
-        free (events);
-}
+if (fd < fd_pipe_thinker) {retval = select(fd_pipe_thinker+1, &readfds, NULL, NULL, NULL);}
+else {retval = select(fd+1, &readfds, NULL, NULL, NULL);}
+
+
 
 	game_shm_id = _shm_id;
 
     _game_state = address_shm(_shm_id);
 
     while(1){
-    	
-    	for (int i = 0; i < nr_events; i++) {
-			if (fd_pipe_thinker == events[i].data.fd) {
 
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
@@ -104,9 +87,8 @@ void performConnection(int fd, int _shm_id){
             disconnect(fd);
             return;
         }
-    }}}
-    free(events);
-    close(efd);
+    }
+
 }
 
 void _receive(){
@@ -409,15 +391,6 @@ phase handle_draft(phase_data *data ){
         printf("Signal send\n");
         char puffer[128];
 
-		event.data.fd = fd_pipe_thinker;
-		event.events = EPOLLIN;
-
-		//Anlegen vom File-Deskriptor der Pipe im Set
-      if ((epoll_ctl (efd, EPOLL_CTL_ADD, fd_pipe_thinker, &event))  < 0) {
-     	perror ("epoll_ctl");
-      	abort ();
-		}
-		
 			ssize_t size = read(fd_pipe_thinker, puffer, 128);
         	if (size < 0){
             perror ("Fehler bei lesen aus pipe).");
@@ -436,10 +409,10 @@ phase handle_draft(phase_data *data ){
             quit = true;
         }
 
-			
+
 	}
 
-  
+
 
 
     return new_phase;
