@@ -2,6 +2,7 @@
 #include "performConnection.h"
 #include "shared_memory_segment.h"
 #define BUFFERSIZE 1024
+#define MAX_EVENTS 64
 
 
 char in_buffer[BUFFERSIZE];
@@ -30,8 +31,34 @@ phase_func_t* const phase_table[3] = {
  * performConnection holds client connection to Gameserver.
  */
 void performConnection(int fd, int _shm_id){
-
-    game_shm_id = _shm_id;
+	
+	int efd, int nr_events;
+	struct epoll_event event;
+	struct epoll_event *events;
+	
+	//Anlegen von epoll - Instanz
+	if ((efd = epoll_create1(0)) == -1)
+    {
+      perror ("epoll_create");
+      abort ();
+    }
+    
+    //Hinzuf�gen vom File-Deskriptor vom Socket zu dem Set
+    event.data.fd = fd;
+    event.events = EPOLLIN;
+    if (epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event)  < 0) {
+      perror ("epoll_ctl");
+      abort ();
+	}
+	
+	events = malloc (sizeof (struct epoll_event) * MAX_EVENTS);
+	if (nr_events = epoll_wait (epfd, events, MAX_EVENTS, -1) < 0) {
+        perror ("epoll_wait");
+        free (events);
+        return 1;
+}
+	
+	game_shm_id = _shm_id;
 
     _game_state = address_shm(_shm_id);
 
@@ -76,6 +103,8 @@ void performConnection(int fd, int _shm_id){
             return;
         }
     }
+    free(events);
+    close(efd);
 }
 
 void _receive(){
@@ -118,6 +147,7 @@ void process_line(char *server_reply, int fd){
 
         free(data);
         free(splited_reply);
+        
         // Beende Verbindung wenn Nachricht invalid
     }else{
         printf("Error - Ungültiges Zeichen zum Beginn der Nachricht! %s\n",server_reply);
@@ -376,13 +406,25 @@ phase handle_draft(phase_data *data ){
 
         printf("Signal send\n");
         char puffer[128];
-        ssize_t size = read(fd_pipe_thinker, puffer, 128);
-        if (size < 0){
+        
+		event.data.fd = fd_pipe_thinker;
+		event.events = EPOLLIN;
+		
+		//Anlegen vom File-Deskriptor der Pipe im Set
+        if (epoll_ctl (efd, EPOLL_CTL_ADD, fd_pipe_thinker, &event)  < 0) {
+     	perror ("epoll_ctl");
+      	abort ();
+		}
+				
+		for (int i = 0; i < nr_events; i++) {
+			if (fd_pipe_thinker == events[i].data.fd) {
+			ssize_t size = read(fd_pipe_thinker, puffer, 128);
+        	if (size < 0){
             perror ("Fehler bei lesen aus pipe).");
             exit(EXIT_FAILURE);
-        }
-        printf("%d\n", (int)size);
-        puffer[size] = '\0';
+        	}
+        	printf("%d\n", (int)size);
+        	puffer[size] = '\0';
 
         printf("Move received\n");
         printf("Berechneter Zug %s\n", puffer);
@@ -393,8 +435,11 @@ phase handle_draft(phase_data *data ){
             perror("Fehler bei der Übertragung der Game Id!\n");
             quit = true;
         }
+				
+			}
+	}   
 
-    }
+  }
 
 
     return new_phase;
