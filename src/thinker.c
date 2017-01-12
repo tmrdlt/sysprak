@@ -72,7 +72,7 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
                         check_dame(tmp_court, max_size, dir, i, j, &mv,  my_color, opponent_color, 0);
                         
                         if(mv.value > MOVE_ILLEGAL){
-                            //printf("Move added in stash: %s , (%d)\n" , mv.move_id , mv.value);
+                            printf("Dame Move added in stash: %s (%d)\n" , mv.move_id , mv.value);
                             rated_moves[count_legal_moves++] = mv;
                         }
                     }
@@ -147,7 +147,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
         if(strstr(next->towers,"_")){
             
-          // printf("Field is empty: %s\n", next->field_id);
+           printf("Field is empty: %s\n", next->field_id);
 
             move_value rate_nxt_move;
 
@@ -157,7 +157,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             if(must_bash != 1){
                 
                 
-                //printf("Draft must not bash\n");
+                printf("Draft must not bash\n");
 
                 //bewerte möglichen Zug
                 mv->value += check_safe(court, max_size, next_i, next_j, opponent_color) + check_covered(court, max_size, next_i, next_j, my_color, dir);
@@ -178,7 +178,8 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
             //teste ob Zug ins nächste Feld besser bewertet wäre
             if(rate_nxt_move.value > mv->value){
-                //printf("New better Draft found: %s (%d) Old: %s (%d) \n" , rate_nxt_move.move_id , rate_nxt_move.value , mv->move_id , mv->value);
+                
+                printf("New better Draft found: %s (%d) Old: %s (%d) \n" , rate_nxt_move.move_id , rate_nxt_move.value , mv->move_id , mv->value);
                 mv->value = rate_nxt_move.value;
                 strcpy(mv->move_id, rate_nxt_move.move_id);
             } else if(rate_nxt_move.value == mv->value){
@@ -190,7 +191,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
         }else if(char_cmp_ignore_case(next->towers[strlen(next->towers)-1] , opponent_color) ){
             
             
-          // printf("Enemy in field: %s\n", next->field_id);
+           printf("Enemy in field: %s\n", next->field_id);
 
             //find field behind
             int i_behind = next_i, j_behind = next_j;
@@ -204,7 +205,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                 
                 if(!strstr(field_behind->towers,"_")){
                     
-                    // printf("Field behind enemy is not empty: %s\n", field_behind->field_id);
+                     printf("Field behind enemy is not empty: %s\n", field_behind->field_id);
                     
                     break;
 
@@ -214,7 +215,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     tmp_mv.value = mv->value;
                     strcpy(tmp_mv.move_id, mv->move_id);
                     
-                   // printf("Field behind enemy is empty: %s\n", field_behind->field_id);
+                    printf("Field behind enemy is empty: %s\n", field_behind->field_id);
                 
                     //build move id
                     strcat(tmp_mv.move_id, ":");
@@ -240,16 +241,23 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                     //Damen zug nach hinten ist genauso wertvoll wie nach vorne
                     if (dir >= LOWER_LEFT) tmp_mv.value +=  MOVE_FOR;
                     else tmp_mv.value += MOVE_FOR;
-
+                    
                     //rate
                     tmp_mv.value += check_safe(court, max_size, i_behind, j_behind, opponent_color) + check_covered(court, max_size, i_behind, j_behind , my_color, dir);
+                    
+                    
+                    //einmaliges setzten des results
+                    if(tmp_mv.value > tmp_mv_result.value){
+                        tmp_mv_result.value = tmp_mv.value;
+                        strcpy(tmp_mv_result.move_id, tmp_mv.move_id);
+                    }
                     
                     //rekursiver move
                     move_value tmp_mv_rec;
                     tmp_mv_rec.value = tmp_mv.value;
                     strcpy(tmp_mv_rec.move_id, tmp_mv.move_id);
-
                     
+                    printf("Move: %s (%d)\n",tmp_mv.move_id , tmp_mv.value );
 
                     //rec check 4 directions
                     for(direction dir_rec = UPPER_LEFT ; dir_rec <= LOWER_RIGHT ; dir_rec++){
@@ -258,7 +266,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
                             continue;
                         }
 
-                        //printf("Check Direction: %d for further drafts\n", dir_rec);
+                        printf("Check Direction: %d for further drafts\n", dir_rec);
                         
                         field tmp_court[COURT_SIZE][COURT_SIZE];
                         copy_court(tmp_court, court);
@@ -267,7 +275,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
 
                         if(tmp_mv_rec.value > tmp_mv_result.value){
                             
-                           // printf("New draft: %s (%d),  Old Draft: %s (%d) \n", tmp_mv_rec.move_id , tmp_mv_rec.value, tmp_mv.move_id, tmp_mv.value);
+                            printf("New draft: %s (%d),  Old Draft: %s (%d) \n", tmp_mv_rec.move_id , tmp_mv_rec.value, tmp_mv.move_id, tmp_mv.value);
                             tmp_mv_result.value = tmp_mv_rec.value;
                             strcpy(tmp_mv_result.move_id, tmp_mv_rec.move_id);
                         } else if(tmp_mv_rec.value == tmp_mv_result.value){
@@ -290,7 +298,7 @@ int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, 
             if(tmp_mv_result.value > mv->value){
                 mv->value = tmp_mv_result.value;
                 strcpy(mv->move_id, tmp_mv_result.move_id);
-             //   printf("Best Dame draft = %s (%d)\n ", mv->move_id , mv->value);
+               printf("Best Dame draft = %s (%d)\n ", mv->move_id , mv->value);
             }  else if(tmp_mv_result.value == mv->value){
                 if(randomize_even_drafts()){
                     mv->value = tmp_mv_result.value;
@@ -581,7 +589,7 @@ direction revers_dir(direction dir){
 bool randomize_even_drafts(){
     srand((unsigned)time(NULL));
     int r = rand() % 2;
-    printf("Rand : %d\n" , r);
+    //printf("Rand : %d\n" , r);
     return r == 0;
 }
 
