@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include<sys/epoll.h>
 #include "config.h"
 #include "string_helper.h"
 #include "msg_creator.h"

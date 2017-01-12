@@ -1,6 +1,7 @@
 
 #include "performConnection.h"
 #include "shared_memory_segment.h"
+#include<sys/epoll.h>
 #define BUFFERSIZE 1024
 #define MAX_EVENTS 64
 
@@ -20,6 +21,9 @@ player *players;
 int fd_pipe_thinker;
 
 int game_shm_id;
+int efd, nr_events;
+struct epoll_event event;
+struct epoll_event *events;
 
 phase_func_t* const phase_table[3] = {
     handle_prolog, handle_course, handle_draft
@@ -31,33 +35,30 @@ phase_func_t* const phase_table[3] = {
  * performConnection holds client connection to Gameserver.
  */
 void performConnection(int fd, int _shm_id){
-	
-	int efd, int nr_events;
-	struct epoll_event event;
-	struct epoll_event *events;
-	
+
+
+
 	//Anlegen von epoll - Instanz
-	if ((efd = epoll_create1(0)) == -1)
+	if ((efd = epoll_create(2)) == -1)
     {
       perror ("epoll_create");
       abort ();
     }
-    
-    //Hinzuf�gen vom File-Deskriptor vom Socket zu dem Set
+
+    //Hinzufuegen vom File-Deskriptor vom Socket zu dem Set
     event.data.fd = fd;
     event.events = EPOLLIN;
-    if (epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event)  < 0) {
+    if ((epoll_ctl (efd, EPOLL_CTL_ADD, fd, &event))  < 0) {
       perror ("epoll_ctl");
       abort ();
 	}
-	
+
 	events = malloc (sizeof (struct epoll_event) * MAX_EVENTS);
-	if (nr_events = epoll_wait (epfd, events, MAX_EVENTS, -1) < 0) {
+	if ((nr_events = epoll_wait (efd, events, MAX_EVENTS, -1)) < 0) {
         perror ("epoll_wait");
         free (events);
-        return 1;
 }
-	
+
 	game_shm_id = _shm_id;
 
     _game_state = address_shm(_shm_id);
@@ -147,7 +148,7 @@ void process_line(char *server_reply, int fd){
 
         free(data);
         free(splited_reply);
-        
+
         // Beende Verbindung wenn Nachricht invalid
     }else{
         printf("Error - Ungültiges Zeichen zum Beginn der Nachricht! %s\n",server_reply);
@@ -406,16 +407,16 @@ phase handle_draft(phase_data *data ){
 
         printf("Signal send\n");
         char puffer[128];
-        
+
 		event.data.fd = fd_pipe_thinker;
 		event.events = EPOLLIN;
-		
+
 		//Anlegen vom File-Deskriptor der Pipe im Set
-        if (epoll_ctl (efd, EPOLL_CTL_ADD, fd_pipe_thinker, &event)  < 0) {
+      if ((epoll_ctl (efd, EPOLL_CTL_ADD, fd_pipe_thinker, &event))  < 0) {
      	perror ("epoll_ctl");
       	abort ();
 		}
-				
+
 		for (int i = 0; i < nr_events; i++) {
 			if (fd_pipe_thinker == events[i].data.fd) {
 			ssize_t size = read(fd_pipe_thinker, puffer, 128);
@@ -435,9 +436,9 @@ phase handle_draft(phase_data *data ){
             perror("Fehler bei der Übertragung der Game Id!\n");
             quit = true;
         }
-				
+
 			}
-	}   
+	}
 
   }
 
