@@ -52,6 +52,7 @@ char standard_filename[] = "client.conf";     //standard_filename
 
 int main(int argc, char *argv[]) {
 
+	srand((unsigned)time(NULL));
 	pid_t cpid, ppid, w;                    //Prozess-ID des Kindprozesses
 	filename = standard_filename;
 
