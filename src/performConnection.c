@@ -95,17 +95,35 @@ void process_line(char *server_reply, int fd){
         quit = true;
         //Teste ob die Nachricht valide ist
     }else if (server_reply[0] == '+'){
-
-
-        char **splited_reply;
-        int count_elements = split(server_reply, ' ', &splited_reply);
+        
+        int count = count_elements(server_reply, ' ');
 
         phase_data data;// = (phase_data*) malloc(sizeof(phase_data));
+        
+        data.count_elements = count;
+        int i = 0;
+        
+        printf("Count Elements: %d\n", count);
+        
+        char copy_reply[128];
+        strcpy(copy_reply, server_reply);
+        
+        char *act_word;
+        act_word = strtok(copy_reply, " ");
+        
+        strcpy(data.splited_reply[i], act_word);
+        printf("Next split: %s\n", data.splited_reply[i]);
+      
+        i++;
+        
+        while (i < count ){
+            act_word = strtok(NULL , " ");
+            strcpy(data.splited_reply[i], act_word);
+            printf("Next split: %s\n", data.splited_reply[i]);
+            i++;
+        }
+        
 
-
-
-        data.count_elements = count_elements;
-        data.splited_reply = splited_reply;
         data.server_reply = server_reply;
         data.fd = fd;
 
@@ -113,7 +131,6 @@ void process_line(char *server_reply, int fd){
         _phase = run_phase(_phase, &data);
 
 
-        free(splited_reply);
         // Beende Verbindung wenn Nachricht invalid
     }else{
         printf("Error - Ungültiges Zeichen zum Beginn der Nachricht! %s\n",server_reply);
@@ -134,8 +151,14 @@ phase handle_prolog(phase_data *data ){
 
         printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
         //Check if fitting Versions
-        data->splited_reply[3]++;
-        double version_server = string_to_float(data->splited_reply[3]);
+        
+        char version_tmp[strlen(data->splited_reply[3])-1];
+        
+        for(int i = 0 ; i < strlen(data->splited_reply[3]); i++){
+            version_tmp[i] = data->splited_reply[3][i+1];
+        }
+        
+        double version_server = string_to_float(version_tmp);
         double version_client = string_to_float(version);
 
         if((int)version_server != (int) version_client){

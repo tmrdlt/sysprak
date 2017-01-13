@@ -19,7 +19,7 @@
 typedef struct {
     int fd;
     char *server_reply;
-    char **splited_reply;
+    char splited_reply[10][25];
     int count_elements;
 }phase_data;
 
