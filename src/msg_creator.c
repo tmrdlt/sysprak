@@ -13,103 +13,50 @@ char *version = "2.3";
 char *delimiter ="\n";
 
 
-char *create_msg_version(){
+void create_msg_version(char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "VERSION ";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(version) + strlen(delimiter)));
-    
-    if(msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
-    
+
     strcpy(msg, id);
     strcat(msg, version);
     strcat(msg, delimiter);
-    
-    return msg;
 }
 
-char *create_msg_player(int player_id){
+void create_msg_player(int player_id, char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "PLAYER ";
-    char *msg;
     char id_string[15];
-    
-    
-    
-    if(player_id >= 0){
-        msg = (char*) malloc(sizeof(char)*(strlen(id) + sizeof(char)*2 + strlen(delimiter)));
 
-    }else
-        msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
-    
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     strcpy(msg, id);
-  
+
     if(player_id >= 0){
         int_to_string(player_id, id_string);
         strcat(msg, id_string);
     }
-    
+
     strcat(msg, delimiter);
-    return msg;
 }
 
-char *create_msg_id(char *id_game){
+void create_msg_id(char *id_game, char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "ID ";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(id_game) + strlen(delimiter)));
-    
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     strcpy(msg, id);
     strcat(msg, id_game);
     strcat(msg, delimiter);
-    return msg;
 }
 
-char *create_msg_okwait(){
+void create_msg_okwait(char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "OKWAIT";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
-    
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     strcpy(msg, id);
     strcat(msg, delimiter);
-    return msg;
 }
 
-char *create_msg_thinking(){
+void create_msg_thinking(char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "THINKING";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id)  + strlen(delimiter)));
-    
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
     strcpy(msg, id);
     strcat(msg, delimiter);
-    return msg;
 }
 
-char *create_msg_play(char *move){
+void create_msg_play(char *move, char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "PLAY ";
-    char *msg = (char*) malloc(sizeof(char)*(strlen(id) + strlen(move) + strlen(delimiter)));
-   
-    if (msg == NULL){
-        perror("Es konnte kein Speiecher alloziert werden");
-        exit(EXIT_FAILURE);
-    }
-     strcpy(msg, id);
+    strcpy(msg, id);
     strcat(msg, move);
     strcat(msg, delimiter);
-    return msg;
 }
-
-
-

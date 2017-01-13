@@ -100,23 +100,19 @@ void process_line(char *server_reply, int fd){
         char **splited_reply;
         int count_elements = split(server_reply, ' ', &splited_reply);
 
-        phase_data *data = (phase_data*) malloc(sizeof(phase_data));
-
-        if(data == NULL){
-            perror("Memory allocation Phase data failed \n");
-            quit = true;
-            return;
-        }
-
-        data->count_elements = count_elements;
-        data->splited_reply = splited_reply;
-        data->server_reply = server_reply;
-        data->fd = fd;
+        phase_data data;// = (phase_data*) malloc(sizeof(phase_data));
 
 
-        _phase = run_phase(_phase,data);
 
-        free(data);
+        data.count_elements = count_elements;
+        data.splited_reply = splited_reply;
+        data.server_reply = server_reply;
+        data.fd = fd;
+
+
+        _phase = run_phase(&_phase,data);
+
+
         free(splited_reply);
         // Beende Verbindung wenn Nachricht invalid
     }else{
@@ -149,7 +145,8 @@ phase handle_prolog(phase_data *data ){
         }
 
         // send Clients version
-        char *msg = create_msg_version();
+        char msg[MAX_MESSAGE_LENGTH];
+        create_msg_version(msg);
         if( send_to_gameserver(data->fd, msg) < 0){
             printf("Version des Clienten konnte nicht gesendet werden!\n");
             quit = true;
@@ -177,7 +174,8 @@ phase handle_prolog(phase_data *data ){
         strcpy(_game_state->game_name , game_name);
 
         // sende gewünschte Spielernummer (noch leer)
-        char *message = create_msg_player(_game_state->player_number);
+        char message[MAX_MESSAGE_LENGTH];
+        create_msg_player(_game_state->player_number, message);
         if( send_to_gameserver(data->fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen\n");
             quit = true;
@@ -258,7 +256,8 @@ phase handle_prolog(phase_data *data ){
         printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
         // Sende die Game-ID zum Server
 
-        char *id_msg = create_msg_id(_game_state->game_name);
+        char id_msg[MAX_MESSAGE_LENGTH];
+        create_msg_id(_game_state->game_name, id_msg);
 
         if( send_to_gameserver(data->fd, id_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
@@ -283,7 +282,9 @@ phase handle_course(phase_data *data ){
     if(strstr(data->splited_reply[1], "WAIT")) {
 
         printf("Warte auf Gameserver\n");
-        if( send_to_gameserver(data->fd, create_msg_okwait()) < 0){
+        char msg[MAX_MESSAGE_LENGTH];
+        create_msg_okwait(msg);
+        if( send_to_gameserver(data->fd, msg) < 0){
             perror("Quittung für Wait konnte nicht gesendet werden\n!");
             quit = true;
         }
@@ -298,7 +299,9 @@ phase handle_course(phase_data *data ){
         print_court(_game_state->court, COURT_SIZE, _game_state->player_number);
         new_phase = DRAFT;
         _game_state->flag_thinking = THINKING;
-        if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
+        char message[MAX_MESSAGE_LENGTH];
+        create_msg_thinking(message);
+        if( send_to_gameserver(data->fd, message) < 0){
             perror("THINKING konnte nicht gesendet werden\n!");
             quit = true;
         }
@@ -387,7 +390,8 @@ phase handle_draft(phase_data *data ){
         printf("Move received\n");
         printf("Berechneter Zug %s\n", puffer);
 
-        char *play_msg = create_msg_play(puffer);
+        char play_msg[MAX_MESSAGE_LENGTH];
+        create_msg_play(puffer, play_msg);
 
         if( send_to_gameserver(data->fd, play_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
@@ -412,7 +416,7 @@ phase run_phase( phase cur_phase, phase_data *data ) {
 /**
  * Tatsächliches senden der Nachricht
  */
-int send_to_gameserver(int fd, char *message){
+int send_to_gameserver(int fd, char message[MAX_MESSAGE_LENGTH]){
     printf("\n C: %s",message);
     int res =( int)send(fd, message, strlen(message),0);
     // printf("%d bytes übertragen \n" , res);
@@ -420,9 +424,7 @@ int send_to_gameserver(int fd, char *message){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
     }
-    free(message);
-
-    return 2;
+    return res;
 }
 
 /**

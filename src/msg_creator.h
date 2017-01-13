@@ -16,20 +16,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#define MAX_MESSAGE_LENGTH 100
+
 extern char *version;
 
-char *create_msg_version();
+void create_msg_version(char msg [MAX_MESSAGE_LENGTH]);
 
-char *create_msg_player(int player_id);
+void create_msg_player(int player_id, char msg [MAX_MESSAGE_LENGTH]);
 
-char *create_msg_id(char *id);
+void create_msg_id(char *id, char msg [MAX_MESSAGE_LENGTH]);
 
-char *create_msg_okwait();
+void create_msg_okwait(char msg [MAX_MESSAGE_LENGTH]);
 
-char *create_msg_thinking();
+void create_msg_thinking(char msg [MAX_MESSAGE_LENGTH]);
 
-char *create_msg_play(char *move);
-
-long strcat_with_realloc(char *dest, char *append);
+void create_msg_play(char *move, char msg [MAX_MESSAGE_LENGTH]);
 
 #endif /* msg_creator_h */
