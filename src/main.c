@@ -25,10 +25,11 @@
 void printHelp() {
 
 	printf("How to use:\n");
-	printf("flags: -g <game_id> -p <player_number> -f <config_filename>\n");
+	printf("flags: -g <game_id> -p<player_number> -f<config_filename>\n");
 	printf("-g: REQUIRED, game_id has to be 13 digits.\n");
-	printf("-p: OPTIONAL, use this to specify the player number.\n");
+	printf("-p: OPTIONAL, use this to specify the player number. Choose 0 or 1\n");
 	printf("-f: OPTIONAL, use this to specify a config file\n");
+	printf("It's very important to not use a Whitespace after optional arguments!!\n");
 }
 
 // Signal Handler um SIGUSR1 und ctr + c abzufangen
@@ -45,15 +46,17 @@ void handle_signal(int sig) {
 		}
 }
 
-int player_number = -1;               //hier kann die -p flag gespeichert werden
+int player_number = 0;                //hier kann die -p flag gespeichert werden
 char *game_id;                        //hier kann die -g flag gespeichert werden
 char *filename;                       //hier kann die -f flag gespeichert werden
 char standard_filename[] = "client.conf";     //standard_filename
 
 int main(int argc, char *argv[]) {
 
+	//Seed Initialisierung für den Thinker
 	srand((unsigned)time(NULL));
-	pid_t cpid, ppid, w;                    //Prozess-ID des Kindprozesses
+  //Prozess-ID des Kindprozesses und des Elternprozesses
+	pid_t cpid, ppid, w;
 	filename = standard_filename;
 
 	// flag Verwaltung über getopt
@@ -70,12 +73,11 @@ int main(int argc, char *argv[]) {
 			filename = optarg;
 			break;
 		default:
-
 			printHelp();
 			return EXIT_FAILURE;
 		}
 	}
-
+	printf("Custom Playernumber is: %d\n", player_number);
 	// hat die GameId wirklich 13 Stellen?
 	if (game_id == NULL || strlen(game_id) != 13) {
 		printHelp();
@@ -85,17 +87,15 @@ int main(int argc, char *argv[]) {
 
 	// öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
 	openconfig(filename);
-	printf("Hostname: %s \n", _config.hostname);
 
 	int _shm_id;
 
 	game_state *shmdata;
-	_shm_id = shm_id(
-			sizeof(game_state) + sizeof(char) * SIZE_COURT * SIZE_COURT);
+
+	_shm_id = shm_id(sizeof(game_state) + sizeof(char) * SIZE_COURT * SIZE_COURT);
 
 	shmdata = (game_state*) address_shm(_shm_id);
 
-	shmdata->player_number = player_number;
 	shmdata->game_name = game_id;
 
 	//Anlegen von namenlosen Pipe
@@ -110,55 +110,36 @@ int main(int argc, char *argv[]) {
 	// Aufspaltung in zwei Prozesse über fork()
 	cpid = fork();
 
-
 	if (cpid == -1) {
 		perror("Fehler bei fork().");
 		exit(EXIT_FAILURE);
 	}
-
 	//Kindprozess
 	if (cpid == 0) {
-
 		printf("Connector (Kindprozess), PID: %ld\n", (long) getpid());
 		// shmdata->process_id_connector = pid;
-
 		int _fd = connect_to_server();
-
 		if (_fd == -1)
 			return EXIT_FAILURE;
-
 		//Schreibeseite schliessen
 		close(feld[1]);
-
 		fd_pipe_thinker = feld[0];
-
 		performConnection(_fd, _shm_id);
 
 		printf("Id connector %d \n", shmdata->process_id_connector);
-
-
 		printf("beende Connector\n");
 
 		exit(EXIT_SUCCESS);
-		//  shmdata = address_shm (shm_id);
-		//printf("Id thinker %d \n" , shmdata->process_id_thinker);
 
 	//Elternprozess
 	} else {
 		printf("Thinker (Elternprozess), PID: %ld\n", (long) ppid);
-		//shmdata->process_id_thinker = pid;
-
 		//Leseseite schliessen
 		close(feld[0]);
-
-		// In die Schreibseite der Pipe schreiben
-		//write (feld[1], puffer, PIPE_BUF);
-
 		fd = feld[1];
-
 		id_seg_gameparams = _shm_id;
-
-		int status; //Zum Abfangen des Status vom Kindprozess in waitpid
+    //Zum Abfangen des Status vom Kindprozess in waitpid
+		int status;
 
 		again:
 		signal(SIGUSR1, handle_signal);
@@ -173,7 +154,6 @@ int main(int argc, char *argv[]) {
 				}
 				exit(EXIT_FAILURE);
 			}
-
 			if (WIFEXITED(status)) {
 				printf("Child terminated normally with status: %d\n", WEXITSTATUS(status));
 				}
@@ -182,9 +162,6 @@ int main(int argc, char *argv[]) {
 
 		printf("beende Thinker\n");
 		exit(EXIT_SUCCESS);
-
 	}
-
 	return EXIT_SUCCESS;
-
 }
