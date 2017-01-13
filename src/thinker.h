@@ -31,15 +31,19 @@ bool char_cmp_ignore_case(char char_1 , char char_2);
 
 void think();
 
-int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value mv[4], int must_bash);
+int check_field(field court[COURT_SIZE][COURT_SIZE] ,int max_size, int i_feld, int j_feld, char my_color, char opponent_color, move_value *mv, int must_bash);
 
-int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value mv[4], int index, char my_color, char opponent_color);
+int check_bashing(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value *mv, char my_color, char opponent_color);
 
 int check_dame(field court[COURT_SIZE][COURT_SIZE],int max_size, direction dir, int i_feld, int j_feld, move_value *mv, char my_color, char opponent_color, int must_bash);
 
-int check_safe(field court[COURT_SIZE][COURT_SIZE],int max_size_court, int i_field, int j_field, char opponent_color);
+int rate_move(field court[COURT_SIZE][COURT_SIZE],int max_size_court, int i_field, int j_field,int i_field_old, int j_field_old, char opponent_color, char my_color, direction dir_move);
+
+int check_safe(field court[COURT_SIZE][COURT_SIZE],int max_size_court, int i_field, int j_field, char opponent_color, char my_color);
 
 int check_covered(field court[COURT_SIZE][COURT_SIZE] ,int max_size_court,int i_field, int j_field, char my_color ,  direction dir_move);
+
+int check_decover(field court[COURT_SIZE][COURT_SIZE],int i_field, int j_field, char my_color ,  direction dir_move);
 
 extern int fd;
 
@@ -49,7 +53,10 @@ void copy_court(field dest[COURT_SIZE][COURT_SIZE] , field src[COURT_SIZE][COURT
 
 bool randomize_even_drafts();
 
-direction revers_dir(direction d);
+
+direction revers_dir(direction dir);
+
+direction mirrored_dir (direction dir);
 
 
 
