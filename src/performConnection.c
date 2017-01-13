@@ -110,7 +110,7 @@ void process_line(char *server_reply, int fd){
         data.fd = fd;
 
 
-        _phase = run_phase(&_phase,data);
+        _phase = run_phase(_phase, &data);
 
 
         free(splited_reply);
