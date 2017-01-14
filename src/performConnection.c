@@ -19,6 +19,10 @@ player *players;
 
 int fd_pipe_thinker;
 
+fd_set readfds;
+int retval;
+int max_fd;
+  
 int game_shm_id;
 
 phase_func_t* const phase_table[3] = {
@@ -32,23 +36,12 @@ phase_func_t* const phase_table[3] = {
  */
 void performConnection(int fd, int _shm_id){
 
-  fd_set readfs;
-  int retval;
-
-  FD_SET(fd, &readfds);
-  FD_SET(fd_pipe_thinker, &readfds);
-
-if (fd < fd_pipe_thinker) {retval = select(fd_pipe_thinker+1, &readfds, NULL, NULL, NULL);}
-else {retval = select(fd+1, &readfds, NULL, NULL, NULL);}
-
-
-
 	game_shm_id = _shm_id;
 
     _game_state = address_shm(_shm_id);
 
     while(1){
-
+    	
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
             fprintf(stderr, "Line exceeded buffer length!\n");
@@ -294,6 +287,9 @@ phase handle_prolog(phase_data *data ){
  */
 phase handle_course(phase_data *data ){
     phase new_phase = _phase;
+    
+    
+    
     if(strstr(data->splited_reply[1], "WAIT")) {
 
         printf("Warte auf Gameserver\n");
@@ -387,24 +383,41 @@ phase handle_draft(phase_data *data ){
            exit(EXIT_FAILURE);
        }
 
-
         printf("Signal send\n");
-        char puffer[128];
+        
+          
+	FD_ZERO(&readfds);
+  	FD_SET(data->fd, &readfds);
+  	FD_SET(fd_pipe_thinker, &readfds);
+	
+	if (data->fd < fd_pipe_thinker) {max_fd = fd_pipe_thinker;}
+ 	else {max_fd = data->fd;}
+     
+    retval = select(max_fd, &readfds, NULL, NULL, NULL);
+   	if (retval == -1) perror("select()");
+    else printf("Data is available now.\n");
+        
+    if(FD_ISSET(data->fd, &readfds)) {
+    	quit = true;
+	}
+    
+    
+    char puffer[128];
 
-			ssize_t size = read(fd_pipe_thinker, puffer, 128);
-        	if (size < 0){
+	ssize_t size = read(fd_pipe_thinker, puffer, 128);
+    	if (size < 0){
             perror ("Fehler bei lesen aus pipe).");
             exit(EXIT_FAILURE);
         	}
         	printf("%d\n", (int)size);
         	puffer[size] = '\0';
 
-        printf("Move received\n");
-        printf("Berechneter Zug %s\n", puffer);
+    printf("Move received\n");
+    printf("Berechneter Zug %s\n", puffer);
 
-        char *play_msg = create_msg_play(puffer);
+    char *play_msg = create_msg_play(puffer);
 
-        if( send_to_gameserver(data->fd, play_msg) < 0){
+    if( send_to_gameserver(data->fd, play_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
             quit = true;
         }
