@@ -9,9 +9,6 @@
 #include "string_helper.h"
 
 
-
-int split(char *string_to_split , char delimiter , char ***dest);
-
 void float_to_string(float _float,  char*dest){
     char str[15];
     sprintf(str, "%fl", _float);
@@ -34,27 +31,59 @@ int string_to_int(char *string){
     return atoi(string);
 }
 
-
-/**
- * Zerteilt string in string array
- */
-int split (char *string_to_spilt, char delimiter, char ***dest)
-{
+//berechne Elemente vor einem Split
+int count_elements(char *string_to_split , char delimiter){
     int count = 1;
-    int token_len = 1;
-    int i = 0;
     char *copy_of_string;
-    char *tmp_dest;
+    copy_of_string = string_to_split;
     
-    
-    // count words and allocate array of strings
-    copy_of_string = string_to_spilt;
     while (*copy_of_string != '\0')
     {
         if (*copy_of_string == delimiter)
             count++;
         copy_of_string++;
     }
+    
+    return count;
+}
+
+//init each word array
+void init_words(char *string_to_split , char delimiter,  char **dest[6]){
+    
+    char *copy_of_string;
+    copy_of_string = string_to_split;
+    int token_len = 1;
+    int i = 0;
+    
+    while (*copy_of_string != '\0')
+    {
+        if (*copy_of_string == delimiter)
+        {
+            char word[token_len];
+            *dest[i] = word;
+            token_len = 0;
+            i++;
+        }
+        copy_of_string++;
+        token_len++;
+    }
+    char word[token_len];
+    *dest[i] = word;
+
+}
+
+
+/**
+ * Zerteilt string in string array
+ */
+int split (char *string_to_spilt, char delimiter, char ***dest)
+{
+    int count = count_elements(string_to_spilt, delimiter);
+    int token_len = 1;
+    int i = 0;
+    char *copy_of_string;
+    char *tmp_dest;
+    
     
     *dest = (char**) malloc(sizeof(char*) * count);
     if (*dest == NULL){

@@ -16,6 +16,10 @@
 
 int split(char *string_to_split , char delimiter , char ***dest);
 
+int count_elements(char *string_to_split , char delimiter);
+
+void init_words(char *string_to_split , char delimiter,  char **dest[6]);
+
 void float_to_string(float _float, char*dest);
 
 void int_to_string(int _int, char*dest);

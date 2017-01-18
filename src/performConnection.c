@@ -10,7 +10,7 @@ size_t in_buffer_used =0;
 
 bool quit = false;
 
-player *_player;
+player _player;
 
 game_state *_game_state;
 phase _phase = PROLOG;
@@ -102,28 +102,36 @@ void process_line(char *server_reply, int fd){
         //Teste ob die Nachricht valide ist
     }else if (server_reply[0] == '+'){
 
+        int count = count_elements(server_reply, ' ');
 
-        char **splited_reply;
-        int count_elements = split(server_reply, ' ', &splited_reply);
+        phase_data data;// = (phase_data*) malloc(sizeof(phase_data));
 
-        phase_data *data = (phase_data*) malloc(sizeof(phase_data));
+        data.count_elements = count;
+        int i = 0;
 
-        if(data == NULL){
-            perror("Memory allocation Phase data failed \n");
-            quit = true;
-            return;
+        char copy_reply[128];
+        strcpy(copy_reply, server_reply);
+
+        char *act_word;
+        act_word = strtok(copy_reply, " ");
+
+        strcpy(data.splited_reply[i], act_word);
+
+        i++;
+
+        while (i < count ){
+            act_word = strtok(NULL , " ");
+            strcpy(data.splited_reply[i], act_word);
+            i++;
         }
 
-        data->count_elements = count_elements;
-        data->splited_reply = splited_reply;
-        data->server_reply = server_reply;
-        data->fd = fd;
+
+        data.server_reply = server_reply;
+        data.fd = fd;
 
 
-        _phase = run_phase(_phase,data);
+        _phase = run_phase(_phase, &data);
 
-        free(data);
-        free(splited_reply);
 
         // Beende Verbindung wenn Nachricht invalid
     }else{
@@ -145,8 +153,14 @@ phase handle_prolog(phase_data *data ){
 
         printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
         //Check if fitting Versions
-        data->splited_reply[3]++;
-        double version_server = string_to_float(data->splited_reply[3]);
+
+        char version_tmp[strlen(data->splited_reply[3])-1];
+
+        for(unsigned int i = 0 ; i < strlen(data->splited_reply[3]); i++){
+            version_tmp[i] = data->splited_reply[3][i+1];
+        }
+
+        double version_server = string_to_float(version_tmp);
         double version_client = string_to_float(version);
 
         if((int)version_server != (int) version_client){
@@ -156,7 +170,8 @@ phase handle_prolog(phase_data *data ){
         }
 
         // send Clients version
-        char *msg = create_msg_version();
+        char msg[MAX_MESSAGE_LENGTH];
+        create_msg_version(msg);
         if( send_to_gameserver(data->fd, msg) < 0){
             printf("Version des Clienten konnte nicht gesendet werden!\n");
             quit = true;
@@ -184,7 +199,9 @@ phase handle_prolog(phase_data *data ){
         strcpy(_game_state->game_name , game_name);
 
         // sende gewünschte Spielernummer (noch leer)
-        char *message = create_msg_player(_game_state->player_number);
+        char message[MAX_MESSAGE_LENGTH];
+        
+        create_msg_player(_game_state->player_number, message);
         if( send_to_gameserver(data->fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen\n");
             quit = true;
@@ -195,11 +212,10 @@ phase handle_prolog(phase_data *data ){
         // Player id- name allocation
     }else if(strstr(data->splited_reply[1], "YOU")) {
 
-        _player= (player*) malloc(sizeof(player*));
-        _player->number = string_to_int(data->splited_reply[2]);
-        _player->player_name = data->splited_reply[3];
-        printf("Hi (%i) %s!\n" ,_player->number, _player->player_name);
-        _game_state->player_number = _player->number;
+        _player.number = string_to_int(data->splited_reply[2]);
+        _player.player_name = data->splited_reply[3];
+        printf("Hi (%i) %s!\n" ,_player.number, _player.player_name);
+        _game_state->player_number = _player.number;
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
 
@@ -215,7 +231,7 @@ phase handle_prolog(phase_data *data ){
 
         _game_state->player_count = players_in_game;
         players = address_shm(id_player_shm);
-        players[_player->number]= *_player;
+        players[_player.number]= _player;
 
         if(players_in_game != 1){
             printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
@@ -250,8 +266,6 @@ phase handle_prolog(phase_data *data ){
                 strcat(name, data->splited_reply[i]);
 
             }
-
-            printf("name palyer: %s \n", name);
         }
         players[p_nr].player_name = name;
 
@@ -265,7 +279,8 @@ phase handle_prolog(phase_data *data ){
         printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
         // Sende die Game-ID zum Server
 
-        char *id_msg = create_msg_id(_game_state->game_name);
+        char id_msg[MAX_MESSAGE_LENGTH];
+        create_msg_id(_game_state->game_name, id_msg);
 
         if( send_to_gameserver(data->fd, id_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
@@ -293,7 +308,9 @@ phase handle_course(phase_data *data ){
     if(strstr(data->splited_reply[1], "WAIT")) {
 
         printf("Warte auf Gameserver\n");
-        if( send_to_gameserver(data->fd, create_msg_okwait()) < 0){
+        char msg[MAX_MESSAGE_LENGTH];
+        create_msg_okwait(msg);
+        if( send_to_gameserver(data->fd, msg) < 0){
             perror("Quittung für Wait konnte nicht gesendet werden\n!");
             quit = true;
         }
@@ -301,15 +318,18 @@ phase handle_course(phase_data *data ){
         //Server allows Client to make next Move
     }else if(strstr(data->splited_reply[1], "MOVE")) {
         // TODO
-        printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
+        //printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
+          printf("Der Spielzug wurde vom Server aktzeptiert\n");
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
         print_court(_game_state->court, COURT_SIZE, _game_state->player_number);
         new_phase = DRAFT;
         _game_state->flag_thinking = THINKING;
-        if( send_to_gameserver(data->fd, create_msg_thinking()) < 0){
-            perror("THINKING konnte nicht gesendet werden\n!");
+        char message[MAX_MESSAGE_LENGTH];
+        create_msg_thinking(message);
+        if( send_to_gameserver(data->fd, message) < 0){
+            perror("THINKING konnte nicht gesendet werden!\n");
             quit = true;
         }
 
@@ -317,7 +337,7 @@ phase handle_course(phase_data *data ){
 
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
-        printf("Stein auf %s setzen\n", data->splited_reply[1]);
+        // printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //Change gameState
         set_draft (_game_state->court, data->splited_reply[1]);
 
@@ -375,7 +395,7 @@ phase handle_draft(phase_data *data ){
     }     //Server erlaubt berechnung des nächsten Zuges
     else if(strstr(data->splited_reply[1], "OKTHINK")) {
 
-        printf("send Signal\n");
+      //  printf("send Signal\n");
 
         //_game_state->flag_thinking = THINKING;
         if (kill(getppid(), SIGUSR1) < 0) {
@@ -415,7 +435,8 @@ phase handle_draft(phase_data *data ){
     printf("Move received\n");
     printf("Berechneter Zug %s\n", puffer);
 
-    char *play_msg = create_msg_play(puffer);
+        char play_msg[MAX_MESSAGE_LENGTH];
+        create_msg_play(puffer, play_msg);
 
     if( send_to_gameserver(data->fd, play_msg) < 0){
             perror("Fehler bei der Übertragung der Game Id!\n");
@@ -443,7 +464,7 @@ phase run_phase( phase cur_phase, phase_data *data ) {
 /**
  * Tatsächliches senden der Nachricht
  */
-int send_to_gameserver(int fd, char *message){
+int send_to_gameserver(int fd, char message[MAX_MESSAGE_LENGTH]){
     printf("\n C: %s",message);
     int res =( int)send(fd, message, strlen(message),0);
     // printf("%d bytes übertragen \n" , res);
@@ -451,9 +472,7 @@ int send_to_gameserver(int fd, char *message){
         printf("Nachricht konnte nicht gesendet werden");
         quit = true;
     }
-    free(message);
-
-    return 2;
+    return res;
 }
 
 /**
@@ -476,8 +495,7 @@ void disconnect(int fd){
     }
     if(fd > 0)
         close(fd);
-    if(_player != NULL)
-        free(_player);
+
 }
 
 //int test_msg_pattern(int argc, const char * argv[]) {
