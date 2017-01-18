@@ -26,7 +26,7 @@ void printHelp() {
 
 	printf("How to use:\n");
 	printf("flags: -g <game_id> -p<player_number> -f<config_filename>\n");
-	printf("-g: REQUIRED, game_id has to be 13 digits.\n");
+	printf("-g: REQUIRED, game_id is normally 13 digits.\n");
 	printf("-p: OPTIONAL, use this to specify the player number. Choose 0 or 1\n");
 	printf("-f: OPTIONAL, use this to specify a config file\n");
 	printf("It's very important to not use a Whitespace after optional arguments!!\n");
@@ -77,13 +77,6 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 	}
-	printf("Custom Playernumber is: %d\n", player_number);
-	// hat die GameId wirklich 13 Stellen?
-	if (game_id == NULL || strlen(game_id) != 13) {
-		printHelp();
-		//test_msg_pattern();
-		return EXIT_FAILURE;
-	}
 
 	// öffne Konfigurationsdatei und schreibe Werte in hostname, portnumber & gamekindname
 	openconfig(filename);
@@ -97,7 +90,7 @@ int main(int argc, char *argv[]) {
 	shmdata = (game_state*) address_shm(_shm_id);
 
 	shmdata->game_name = game_id;
-    
+
     shmdata->player_number = player_number;
 
 	//Anlegen von namenlosen Pipe
