@@ -317,9 +317,17 @@ phase handle_course(phase_data *data ){
 
         //Server allows Client to make next Move
     }else if(strstr(data->splited_reply[1], "MOVE")) {
-        // TODO
-        //printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
-          printf("Der Spielzug wurde vom Server aktzeptiert\n");
+        // TODO LOG
+         // printf("Der Spielzug wurde vom Server aktzeptiert\n");
+        
+        int move_time;
+        
+        int_to_string(move_time, data->splited_reply[2]);
+        
+        _game_state->move_time = move_time;
+        
+        
+        printf("Du bist am Zug und hast %d Millisekunden\n" ,_game_state->move_time);
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {

@@ -56,6 +56,8 @@ typedef struct {
 
     int flag_thinking;
     
+    int move_time;
+    
     field court[COURT_SIZE][COURT_SIZE];
     
     int players_shm_ids;
