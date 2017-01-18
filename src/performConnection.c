@@ -320,14 +320,12 @@ phase handle_course(phase_data *data ){
         // TODO LOG
          // printf("Der Spielzug wurde vom Server aktzeptiert\n");
         
-        int move_time;
-        
-        int_to_string(move_time, data->splited_reply[2]);
+        int move_time = string_to_int(data->splited_reply[2]);
         
         _game_state->move_time = move_time;
         
         
-        printf("Du bist am Zug und hast %d Millisekunden\n" ,_game_state->move_time);
+        printf("Du bist am Zug und hast %d Millisekunden\n" , move_time);
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
@@ -396,9 +394,12 @@ phase handle_course(phase_data *data ){
  * Handle Phase Spielzug
  */
 phase handle_draft(phase_data *data ){
-    phase new_phase = COURSE;
+    phase new_phase = _phase;
 
     if(strstr(data->splited_reply[1], "MOVEOK")) {
+        new_phase = COURSE;
+        printf("Zug akzeptiert!\n");
+        
         _game_state->flag_thinking = NOT_THINKING;
     }     //Server erlaubt berechnung des nächsten Zuges
     else if(strstr(data->splited_reply[1], "OKTHINK")) {

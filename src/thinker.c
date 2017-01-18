@@ -37,7 +37,7 @@ void think(){
         if (_game_state->player_number != 0){
             my_color = 'b' , oponent_color = 'w';
         }
-        think_nxt_move(_game_state->court, 3000, COURT_SIZE, my_color, oponent_color);
+        think_nxt_move(_game_state->court, _game_state->move_time, COURT_SIZE, my_color, oponent_color);
     }else{
         perror("Thinkanstoß aber Connector Flag nicht gesetzt! \n");
         //... do something
@@ -45,7 +45,7 @@ void think(){
 
 }
 
-
+//TODO timer
 void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int max_size,char my_color, char opponent_color){
     int passed_time = 0; // TODO Update
 
