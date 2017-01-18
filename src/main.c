@@ -97,6 +97,8 @@ int main(int argc, char *argv[]) {
 	shmdata = (game_state*) address_shm(_shm_id);
 
 	shmdata->game_name = game_id;
+    
+    shmdata->player_number = player_number;
 
 	//Anlegen von namenlosen Pipe
 	int feld[2];
