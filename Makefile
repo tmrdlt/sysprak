@@ -11,9 +11,12 @@ SRCDIR   = src
 OBJDIR   = obj
 BINDIR   = bin
 # variables
-GAMEID   = 123gameid1234 	# -g flag (REQUIRED)
-PLAYER   = 1							# -p flag (OPTIONAL)
-CONFIG   = client.conf		# -f flag (OPTIONAL)
+# -g flag (REQUIRED)
+GAMEID   = 123gameid1234
+# -p flag (OPTIONAL)
+PLAYER   = 1
+# -f flag (OPTIONAL)
+CONFIG   = client.conf
 
 SOURCES  := $(wildcard $(SRCDIR)/*.c)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
@@ -28,10 +31,10 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
-play: client
-			./$< -g $(GAMEID)
+play: $(BINDIR)/$(TARGET)
+			./$< -g $(GAMEID) -p$(PLAYER) -f$(CONFIG)
 
 .PHONY: clean
 clean:
-	@$(rm) $(OBJECTS) $(BINDIR)/$(TARGET)
+	@$(rm) $(OBJECTS) $(BINDIR)/$(TARGET)$(GAMEID)
 	@echo "Cleanup complete!"

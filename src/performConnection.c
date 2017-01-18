@@ -95,34 +95,30 @@ void process_line(char *server_reply, int fd){
         quit = true;
         //Teste ob die Nachricht valide ist
     }else if (server_reply[0] == '+'){
-        
+
         int count = count_elements(server_reply, ' ');
 
         phase_data data;// = (phase_data*) malloc(sizeof(phase_data));
-        
+
         data.count_elements = count;
         int i = 0;
-        
-        printf("Count Elements: %d\n", count);
-        
+
         char copy_reply[128];
         strcpy(copy_reply, server_reply);
-        
+
         char *act_word;
         act_word = strtok(copy_reply, " ");
-        
+
         strcpy(data.splited_reply[i], act_word);
-        printf("Next split: %s\n", data.splited_reply[i]);
-      
+
         i++;
-        
+
         while (i < count ){
             act_word = strtok(NULL , " ");
             strcpy(data.splited_reply[i], act_word);
-            printf("Next split: %s\n", data.splited_reply[i]);
             i++;
         }
-        
+
 
         data.server_reply = server_reply;
         data.fd = fd;
@@ -151,13 +147,13 @@ phase handle_prolog(phase_data *data ){
 
         printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
         //Check if fitting Versions
-        
+
         char version_tmp[strlen(data->splited_reply[3])-1];
-        
-        for(int i = 0 ; i < strlen(data->splited_reply[3]); i++){
+
+        for(unsigned int i = 0 ; i < strlen(data->splited_reply[3]); i++){
             version_tmp[i] = data->splited_reply[3][i+1];
         }
-        
+
         double version_server = string_to_float(version_tmp);
         double version_client = string_to_float(version);
 
@@ -264,8 +260,6 @@ phase handle_prolog(phase_data *data ){
                 strcat(name, data->splited_reply[i]);
 
             }
-
-            printf("name palyer: %s \n", name);
         }
         players[p_nr].player_name = name;
 
@@ -315,7 +309,8 @@ phase handle_course(phase_data *data ){
         //Server allows Client to make next Move
     }else if(strstr(data->splited_reply[1], "MOVE")) {
         // TODO
-        printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
+        //printf("Du bist am Zug und hast %s sekunden\n" ,data->splited_reply[2]);
+          printf("Der Spielzug wurde vom Server aktzeptiert\n");
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
@@ -325,7 +320,7 @@ phase handle_course(phase_data *data ){
         char message[MAX_MESSAGE_LENGTH];
         create_msg_thinking(message);
         if( send_to_gameserver(data->fd, message) < 0){
-            perror("THINKING konnte nicht gesendet werden\n!");
+            perror("THINKING konnte nicht gesendet werden!\n");
             quit = true;
         }
 
@@ -333,7 +328,7 @@ phase handle_course(phase_data *data ){
 
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
-        printf("Stein auf %s setzen\n", data->splited_reply[1]);
+        // printf("Stein auf %s setzen\n", data->splited_reply[1]);
         //Change gameState
         set_draft (_game_state->court, data->splited_reply[1]);
 
@@ -391,7 +386,7 @@ phase handle_draft(phase_data *data ){
     }     //Server erlaubt berechnung des nächsten Zuges
     else if(strstr(data->splited_reply[1], "OKTHINK")) {
 
-        printf("send Signal\n");
+      //  printf("send Signal\n");
 
         //_game_state->flag_thinking = THINKING;
         if (kill(getppid(), SIGUSR1) < 0) {
@@ -400,7 +395,7 @@ phase handle_draft(phase_data *data ){
        }
 
 
-        printf("Signal send\n");
+      //  printf("Signal send\n");
         char puffer[128];
         ssize_t size = read(fd_pipe_thinker, puffer, 128);
         if (size < 0){
