@@ -46,7 +46,7 @@ void handle_signal(int sig) {
 		}
 }
 
-int player_number = 0;                //hier kann die -p flag gespeichert werden
+int player_number = -1;                //hier kann die -p flag gespeichert werden
 char *game_id;                        //hier kann die -g flag gespeichert werden
 char *filename;                       //hier kann die -f flag gespeichert werden
 char standard_filename[] = "client.conf";     //standard_filename

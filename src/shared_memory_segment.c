@@ -25,7 +25,7 @@ void *address_shm (int shm_id) {
 
     void *address_shm;
     address_shm = shmat (shm_id, (void*)0, 0);
-    if(address_shm < (void*)0) {
+    if(address_shm == (void*) -1) {
         perror("SHM anbinden fehlgeschlagen! \n");
         return "-1";
     }
