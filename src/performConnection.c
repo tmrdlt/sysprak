@@ -9,7 +9,7 @@ size_t in_buffer_used =0;
 
 bool quit = false;
 
-player *_player;
+player _player;
 
 game_state *_game_state;
 phase _phase = PROLOG;
@@ -198,6 +198,7 @@ phase handle_prolog(phase_data *data ){
 
         // sende gewünschte Spielernummer (noch leer)
         char message[MAX_MESSAGE_LENGTH];
+        
         create_msg_player(_game_state->player_number, message);
         if( send_to_gameserver(data->fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen\n");
@@ -209,11 +210,10 @@ phase handle_prolog(phase_data *data ){
         // Player id- name allocation
     }else if(strstr(data->splited_reply[1], "YOU")) {
 
-        _player= (player*) malloc(sizeof(player*));
-        _player->number = string_to_int(data->splited_reply[2]);
-        _player->player_name = data->splited_reply[3];
-        printf("Hi (%i) %s!\n" ,_player->number, _player->player_name);
-        _game_state->player_number = _player->number;
+        _player.number = string_to_int(data->splited_reply[2]);
+        _player.player_name = data->splited_reply[3];
+        printf("Hi (%i) %s!\n" ,_player.number, _player.player_name);
+        _game_state->player_number = _player.number;
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
 
@@ -229,7 +229,7 @@ phase handle_prolog(phase_data *data ){
 
         _game_state->player_count = players_in_game;
         players = address_shm(id_player_shm);
-        players[_player->number]= *_player;
+        players[_player.number]= _player;
 
         if(players_in_game != 1){
             printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
@@ -470,8 +470,7 @@ void disconnect(int fd){
     }
     if(fd > 0)
         close(fd);
-    if(_player != NULL)
-        free(_player);
+
 }
 
 //int test_msg_pattern(int argc, const char * argv[]) {

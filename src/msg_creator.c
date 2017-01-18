@@ -23,7 +23,7 @@ void create_msg_version(char msg[MAX_MESSAGE_LENGTH]){
 
 void create_msg_player(int player_id, char msg[MAX_MESSAGE_LENGTH]){
     char id[] = "PLAYER ";
-    char id_string[15];
+    char id_string[4];
 
     strcpy(msg, id);
 
