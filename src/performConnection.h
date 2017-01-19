@@ -60,6 +60,8 @@ phase handle_draft(phase_data *data );
  */
 phase run_phase( phase cur_phase, phase_data *data );
 
+void handle_negativs(char* reply);
+
 void performConnection(int fd,  int _shm_id);
 
 void disconnect(int fd);

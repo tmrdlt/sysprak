@@ -97,6 +97,9 @@ void process_line(char *server_reply, int fd){
 
     if (server_reply[0] == '-'){
         printf("Server sendet Negativnachricht: \n");
+        
+        handle_negativs(server_reply);
+        
         //printf(" %s \n", server_reply);
         quit = true;
         //Teste ob die Nachricht valide ist
@@ -482,6 +485,31 @@ int send_to_gameserver(int fd, char message[MAX_MESSAGE_LENGTH]){
         quit = true;
     }
     return res;
+}
+
+/**
+ * Logging für Negativnachrichten
+ */
+void handle_negativs(char *reply){
+    
+    if(strstr(reply, "TIMEOUT")){
+        if(strstr(reply,"be faster next time")){
+            printf("Erlaubte Zugzeit überschritten!\n");
+        } else{
+            printf("Timeout Antworte schneller auf Nachrichten des Servers!\n");
+        }
+    }else if(strstr(reply, "No free player")){
+        printf("Spielernummer: %d ist für das gewählte Spiel nicht verfügbar!\n" , _game_state->player_number);
+    }else if(strstr(reply , "Invalid move")){
+        if(strstr(reply, "Weiterer Teilzug möglich")){
+            printf("Bei der Berechnung wurde ein möglicher schlagender Teilzug vernachlässigt\n");
+        }else{
+            printf("Ungültiger Spielzug berechnet!\n");
+        }
+    }else if (strstr(reply,  "Not a valid game ID")){
+        printf("Spiel mit ID: %s konnte nicht vorhanden!\n" , _game_state->game_name);
+    }
+    
 }
 
 /**
