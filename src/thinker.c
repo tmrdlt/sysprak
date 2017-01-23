@@ -7,8 +7,11 @@
 //
 
 #include "thinker.h"
-#include <time.h>
 #include <sys/wait.h>
+#include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#include <stdint.h>
 
 
 #define MOVE_ILLEGAL 0
@@ -29,7 +32,6 @@ void think(){
     game_state *_game_state = address_shm(id_seg_gameparams);
 
     if(_game_state->flag_thinking){
-    
 
 
         char my_color = 'w' , oponent_color = 'b';
@@ -45,17 +47,22 @@ void think(){
 
 }
 
-//TODO timer
+//TODO test timer
 void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int max_size,char my_color, char opponent_color){
-    int passed_time = 0; // TODO Update
+    
+    uint64_t start_time = get_clock_time ();
+    
+    uint64_t new_time = start_time; 
 
+    uint64_t time_diff = new_time - start_time;
+    
     move_value best_move;
 
     best_move.value = MOVE_ILLEGAL;
 
     //rate all possible drafts
-    for(int i = 0 ; i < max_size; i ++){
-        for(int j = 0 ; j < max_size; j ++){
+    for(int i = 0 ; i < max_size && time_diff < allowed_time*0.9; i ++){
+        for(int j = 0 ; j < max_size && time_diff < allowed_time*0.9; j ++){
 
             if(char_cmp_ignore_case(court[i][j].towers[strlen(court[i][j].towers)-1], my_color)){
 
@@ -113,7 +120,8 @@ void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int 
                 }
             }
 
-            passed_time += 10; // TODO Update
+            new_time = get_clock_time();
+            time_diff = new_time - start_time;
         }
     }
     // send best move to connector
@@ -699,3 +707,14 @@ bool randomize_even_drafts(){
     printf("Rand : %d\n" , r);
     return r == 0;
 }
+
+
+uint64_t get_clock_time (){
+    
+     struct timeval tv;
+    if (gettimeofday (&tv, NULL) == 0)
+        return (uint64_t) (tv.tv_sec * 1000 + tv.tv_usec);
+    else
+        return 0;
+}
+

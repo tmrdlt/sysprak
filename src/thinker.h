@@ -51,6 +51,9 @@ extern int id_seg_gameparams;
 
 void copy_court(field dest[COURT_SIZE][COURT_SIZE] , field src[COURT_SIZE][COURT_SIZE]);
 
+
+uint64_t get_clock_time ();
+
 bool randomize_even_drafts();
 
 
