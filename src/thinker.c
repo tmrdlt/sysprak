@@ -50,11 +50,11 @@ void think(){
 //TODO test timer
 void think_nxt_move(field court[COURT_SIZE][COURT_SIZE] , int allowed_time, int max_size,char my_color, char opponent_color){
     
-    uint64_t start_time = get_clock_time ();
+    int start_time = get_clock_time ();
     
-    uint64_t new_time = start_time; 
+    int new_time = start_time;
 
-    uint64_t time_diff = new_time - start_time;
+    int time_diff = new_time - start_time;
     
     move_value best_move;
 
@@ -709,11 +709,11 @@ bool randomize_even_drafts(){
 }
 
 
-uint64_t get_clock_time (){
+int get_clock_time (){
     
      struct timeval tv;
     if (gettimeofday (&tv, NULL) == 0)
-        return (uint64_t) (tv.tv_sec * 1000 + tv.tv_usec);
+        return (int) (tv.tv_sec * 1000 + tv.tv_usec);
     else
         return 0;
 }
