@@ -80,7 +80,7 @@ void set_draft(field court[COURT_SIZE][COURT_SIZE], char* draft) {
 
 void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
 
-        printf("\n   ╭─┬─┬─┬─┬─┬─┬─┬─╮\n");
+        printf("   ╭─┬─┬─┬─┬─┬─┬─┬─╮\n");
         printf("   │A│B│C│D│E│F│G│H│\n");
         printf("╭─┬┴─┴─┴─┴─┴─┴─┴─┴─┴┬─╮\n");
 
@@ -154,6 +154,7 @@ void print_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id) {
                         }
                 }
         }
+        printf("\n");
 }
 
 

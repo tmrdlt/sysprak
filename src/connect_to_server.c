@@ -30,7 +30,7 @@ int connect_to_server ()
         perror("Verbindungsaufbau fehlgeschlagen! \n");
         return -1;
     }
-    printf ("Verbindung mit dem Server hergestellt \n");
+    //printf ("Verbindung mit dem Server hergestellt \n");
 
 
 	 //EXIT

@@ -1,6 +1,6 @@
 CC       = /usr/bin/gcc
 # compiling flags here
-CFLAGS   = -std=c99 -Wall -I. -Wcpp -Wextra -Wpedantic
+CFLAGS   = -std=c99 -Wall -I. -Wcpp -Wextra -Wpedantic -Werror
 LINKER   = gcc -o
 # linking flags here
 LFLAGS   = -Wall -I. -lm

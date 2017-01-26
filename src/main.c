@@ -36,7 +36,7 @@ void printHelp() {
 void handle_signal(int sig) {
 		switch (sig) {
 			case SIGUSR1:
-			printf("Signal Number %d (SIGUSR1) recieved\n", sig);
+			//printf("Signal Number %d (SIGUSR1) recieved\n", sig);
 			think();
 			break;
 			case SIGINT:
@@ -56,7 +56,8 @@ int main(int argc, char *argv[]) {
 	//Seed Initialisierung für den Thinker
 	srand((unsigned)time(NULL));
   //Prozess-ID des Kindprozesses und des Elternprozesses
-	pid_t cpid, ppid, w;
+	pid_t cpid, w;
+	//pid_t  ppid;
 	filename = standard_filename;
 
 	// flag Verwaltung über getopt
@@ -101,7 +102,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	//Elternpid bestimmen
-	ppid = getpid();
+  //ppid = getpid();
 	// Aufspaltung in zwei Prozesse über fork()
 	cpid = fork();
 
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
 	}
 	//Kindprozess
 	if (cpid == 0) {
-		printf("Connector (Kindprozess), PID: %ld\n", (long) getpid());
+		//printf("Connector (Kindprozess), PID: %ld\n", (long) getpid());
 		// shmdata->process_id_connector = pid;
 		int _fd = connect_to_server();
 		if (_fd == -1)
@@ -121,14 +122,14 @@ int main(int argc, char *argv[]) {
 		fd_pipe_thinker = feld[0];
 		performConnection(_fd, _shm_id);
 
-		printf("Id connector %d \n", shmdata->process_id_connector);
+	//	printf("Id connector %d \n", shmdata->process_id_connector);
 		printf("beende Connector\n");
 
 		exit(EXIT_SUCCESS);
 
 	//Elternprozess
 	} else {
-		printf("Thinker (Elternprozess), PID: %ld\n", (long) ppid);
+		//printf("Thinker (Elternprozess), PID: %ld\n", (long) ppid);
 		//Leseseite schliessen
 		close(feld[0]);
 		fd = feld[1];

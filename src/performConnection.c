@@ -22,7 +22,7 @@ int fd_pipe_thinker;
 fd_set readfds;
 int retval;
 int max_fd;
-  
+
 int game_shm_id;
 
 phase_func_t* const phase_table[3] = {
@@ -41,7 +41,7 @@ void performConnection(int fd, int _shm_id){
     _game_state = address_shm(_shm_id);
 
     while(1){
-    	
+
         size_t buffer_remain = sizeof(in_buffer) - in_buffer_used;
         if (buffer_remain == 0) {
             fprintf(stderr, "Line exceeded buffer length!\n");
@@ -93,13 +93,13 @@ void _receive(){
  * Verarbeite die nächste komplett gelesene Zeile (Eine Nachricht)
  */
 void process_line(char *server_reply, int fd){
-    printf("S: %s \n", server_reply);
+    //printf("S: %s \n", server_reply);
 
     if (server_reply[0] == '-'){
         printf("Server sendet Negativnachricht: \n");
-        
+
         handle_negativs(server_reply);
-        
+
         //printf(" %s \n", server_reply);
         quit = true;
         //Teste ob die Nachricht valide ist
@@ -154,7 +154,7 @@ phase handle_prolog(phase_data *data ){
 
     if(strstr(data->splited_reply[1], "MNM")) {
 
-        printf("Versions Nummer des MNM Webservers: %s\n" , data->splited_reply[3]);
+        printf("S: MNM Webservers mit Versionsnummer %s erwartet Verbindungen\n" , data->splited_reply[3]);
         //Check if fitting Versions
 
         char version_tmp[strlen(data->splited_reply[3])-1];
@@ -183,12 +183,12 @@ phase handle_prolog(phase_data *data ){
         // Server allows entering Game
     }else if(strstr(data->splited_reply[1], "PLAYING")) {
         if(!strstr(data->splited_reply[2], _config.gamekindname)){
-            printf("Falsches Spiel!\n");
+            printf("S: Falsches Spiel!\n");
             quit = true;
             return new_phase;
 
         }else{
-            printf("Client und Server Spiel-Typ stimmen überein!\n");
+            printf("S: Client und Server Spiel-Typ stimmen überein!\n");
 
             _prolog_data.set_game_name = 1;
         }
@@ -198,12 +198,12 @@ phase handle_prolog(phase_data *data ){
         char *game_name= data->server_reply;
         game_name++;
         game_name++;
-        printf("Bot betritt das Spiel: %s! \n" , game_name);
+        printf("S: Client betritt das Spiel: %s! \n" , game_name);
         strcpy(_game_state->game_name , game_name);
 
         // sende gewünschte Spielernummer (noch leer)
         char message[MAX_MESSAGE_LENGTH];
-        
+
         create_msg_player(_game_state->player_number, message);
         if( send_to_gameserver(data->fd, message) < 0){
             perror("Initialisierung Spieler fehlgeschlagen\n");
@@ -217,7 +217,7 @@ phase handle_prolog(phase_data *data ){
 
         _player.number = string_to_int(data->splited_reply[2]);
         _player.player_name = data->splited_reply[3];
-        printf("Hi (%i) %s!\n" ,_player.number, _player.player_name);
+        printf("S: Du bist Spieler %i %s!\n" ,_player.number, _player.player_name);
         _game_state->player_number = _player.number;
         // Count Players in Game
     }else if(strstr(data->splited_reply[1], "TOTAL")) {
@@ -237,9 +237,9 @@ phase handle_prolog(phase_data *data ){
         players[_player.number]= _player;
 
         if(players_in_game != 1){
-            printf("In dem von dir gewählten Spiel befinden sich nun %i Spieler\n" , players_in_game);
+            printf("S: Im Spiel befinden sich nun %i Spieler\n" , players_in_game);
         }else{
-            printf("In dem von dir gewählten Spiel befindet sich nun %i Spieler\n" , players_in_game);
+            printf("S: Im Spiel befindet sich nun %i Spieler\n" , players_in_game);
         }
 
         _prolog_data.set_players = 1;
@@ -249,7 +249,7 @@ phase handle_prolog(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "ENDPLAYERS")) {
         // Todo set Flag in Gameparams
         new_phase = COURSE;
-        printf("All Players read, switch to next State! \n");
+        printf("S: Alle Spieler bereit, das Spiel beginnt! \n");
 
         _prolog_data.set_players = 0;
         //Neuer Spielerim Spiel
@@ -273,13 +273,13 @@ phase handle_prolog(phase_data *data ){
         players[p_nr].player_name = name;
 
         if(p_flag == 1)
-            printf("Spieler (%d) %s ist bereit\n" , p_nr, name );
+            printf("S: %s (Nr: %d) ist bereit\n", name, p_nr);
         else
-            printf("Spieler (%d) %s ist noch nicht bereit\n" , p_nr, name);
+            printf("S: %s (Nr: %d) ist noch nicht bereit\n", name, p_nr);
 
 
     }else if (strstr(data->server_reply, "Client version accepted")){
-        printf("Die aktuelle Version des Clienten wurde vom Gameserver akzeptiert! Jetzt gehts los!\n");
+        printf("S: Version des Clients wurde vom Gameserver akzeptiert! Bitte GameID senden um Spiel beizutreten.\n");
         // Sende die Game-ID zum Server
 
         char id_msg[MAX_MESSAGE_LENGTH];
@@ -305,12 +305,12 @@ phase handle_prolog(phase_data *data ){
  */
 phase handle_course(phase_data *data ){
     phase new_phase = _phase;
-    
-    
-    
+
+
+
     if(strstr(data->splited_reply[1], "WAIT")) {
 
-        printf("Warte auf Gameserver\n");
+        printf("S: Warte auf Gegenspieler\n");
         char msg[MAX_MESSAGE_LENGTH];
         create_msg_okwait(msg);
         if( send_to_gameserver(data->fd, msg) < 0){
@@ -322,13 +322,13 @@ phase handle_course(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "MOVE")) {
         // TODO LOG
          // printf("Der Spielzug wurde vom Server aktzeptiert\n");
-        
+
         int move_time = string_to_int(data->splited_reply[2]);
-        
+
         _game_state->move_time = move_time;
-        
-        
-        printf("Du bist am Zug und hast %d Millisekunden\n" , move_time);
+
+
+        printf("S: Du bist am Zug und hast %d Millisekunden\n" , move_time);
 
         //Changed Gamestate - Server sends changed pieces
     }else if(strstr(data->splited_reply[1], "ENDPIECESLIST")) {
@@ -342,7 +342,7 @@ phase handle_course(phase_data *data ){
             quit = true;
         }
 
-        printf("Alle Steine gelesen und gesetzt\n");
+        // printf("Alle Steine gelesen und gesetzt\n");
 
         //Move Brick
     }else if(strstr(data->splited_reply[1], "@")) {
@@ -362,7 +362,7 @@ phase handle_course(phase_data *data ){
     }else if(strstr(data->splited_reply[1], "PIECESLIST")) {
 
         set_court(_game_state->court, COURT_SIZE, _game_state->player_number);
-        printf("Steine setzen\n");
+        printf("\nS: Aktuelles Spielfeld:\n");
 
         //Gewinner Spiel
     }else if(strstr(data->splited_reply[1], "PLAYER0WON")) {
@@ -401,13 +401,11 @@ phase handle_draft(phase_data *data ){
 
     if(strstr(data->splited_reply[1], "MOVEOK")) {
         new_phase = COURSE;
-        printf("Zug akzeptiert!\n");
-        
+        printf("S: Zug akzeptiert!\n");
+
         _game_state->flag_thinking = NOT_THINKING;
     }     //Server erlaubt berechnung des nächsten Zuges
     else if(strstr(data->splited_reply[1], "OKTHINK")) {
-
-      //  printf("send Signal\n");
 
         //_game_state->flag_thinking = THINKING;
         if (kill(getppid(), SIGUSR1) < 0) {
@@ -415,25 +413,22 @@ phase handle_draft(phase_data *data ){
            exit(EXIT_FAILURE);
        }
 
-        printf("Signal send\n");
-        
-          
+
 	FD_ZERO(&readfds);
   	FD_SET(data->fd, &readfds);
   	FD_SET(fd_pipe_thinker, &readfds);
-	
+
 	if (data->fd < fd_pipe_thinker) {max_fd = fd_pipe_thinker;}
  	else {max_fd = data->fd;}
-     
+
     retval = select(max_fd, &readfds, NULL, NULL, NULL);
    	if (retval == -1) perror("select()");
-    else printf("Data is available now.\n");
-        
+
     if(FD_ISSET(data->fd, &readfds)) {
     	quit = true;
 	}
-    
-    
+
+
     char puffer[128];
 
 	ssize_t size = read(fd_pipe_thinker, puffer, 128);
@@ -441,11 +436,10 @@ phase handle_draft(phase_data *data ){
             perror ("Fehler bei lesen aus pipe).");
             exit(EXIT_FAILURE);
         	}
-        	printf("%d\n", (int)size);
-        	puffer[size] = '\0';
+        puffer[size] = '\0';
 
-    printf("Move received\n");
-    printf("Berechneter Zug %s\n", puffer);
+  //  printf("Move received\n");
+  //  printf("Berechneter Zug %s\n", puffer);
 
         char play_msg[MAX_MESSAGE_LENGTH];
         create_msg_play(puffer, play_msg);
@@ -477,7 +471,7 @@ phase run_phase( phase cur_phase, phase_data *data ) {
  * Tatsächliches senden der Nachricht
  */
 int send_to_gameserver(int fd, char message[MAX_MESSAGE_LENGTH]){
-    printf("\n C: %s",message);
+    //printf("C: %s\n",message);
     int res =( int)send(fd, message, strlen(message),0);
     // printf("%d bytes übertragen \n" , res);
     if(res<0){
@@ -491,7 +485,7 @@ int send_to_gameserver(int fd, char message[MAX_MESSAGE_LENGTH]){
  * Logging für Negativnachrichten
  */
 void handle_negativs(char *reply){
-    
+
     if(strstr(reply, "TIMEOUT")){
         if(strstr(reply,"be faster next time")){
             printf("Erlaubte Zugzeit überschritten!\n");
@@ -509,7 +503,7 @@ void handle_negativs(char *reply){
     }else if (strstr(reply,  "Not a valid game ID")){
         printf("Spiel mit ID: %s konnte nicht vorhanden!\n" , _game_state->game_name);
     }
-    
+
 }
 
 /**
