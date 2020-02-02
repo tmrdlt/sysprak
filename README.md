@@ -1,4 +1,4 @@
-# Systempraktikum WS 16/17
+# Systempraktikum (LMU, WiSe 2016/2017)
 
 ## Client für den MNN Gameserver
 _Version: 1.0_
