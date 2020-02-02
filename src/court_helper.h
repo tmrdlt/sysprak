@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "bashni_structs.h"
 
 void set_court(field court[COURT_SIZE][COURT_SIZE], int size, int player_id);

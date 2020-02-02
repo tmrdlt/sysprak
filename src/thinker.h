@@ -1,11 +1,3 @@
-//
-//  thinker.h
-//  bashni
-//
-//  Created by Holzner on 07.12.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
-
 #ifndef thinker_h
 #define thinker_h
 
@@ -51,17 +43,12 @@ extern int id_seg_gameparams;
 
 void copy_court(field dest[COURT_SIZE][COURT_SIZE] , field src[COURT_SIZE][COURT_SIZE]);
 
-int get_clock_time ();
+clock_t get_clock_time ();
 
 bool randomize_even_drafts();
-
 
 direction revers_dir(direction dir);
 
 direction mirrored_dir (direction dir);
-
-
-
-//void print_court(field **court, int size);
 
 #endif /* thinker_h */

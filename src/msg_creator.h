@@ -1,11 +1,3 @@
-//
-//  msg_creator.h
-//  bashni
-//
-//  Created by Holzner on 05.12.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
-
 #ifndef msg_creator_h
 #define msg_creator_h
 

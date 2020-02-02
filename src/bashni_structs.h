@@ -1,10 +1,3 @@
-//
-//  bashni_structs.h
-//  bashni
-//
-//  Created by Holzner on 07.12.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
 
 #ifndef bashni_structs_h
 #define bashni_structs_h
@@ -26,8 +19,6 @@ typedef struct {
 typedef struct {
     int value;
     char move_id[MAX_DRAFT_LENGTH];
-    
-    
 }move_value;
 
 typedef struct {
@@ -50,18 +41,12 @@ typedef struct {
     char *game_name;
     int player_number;
     int player_count;
-
     int process_id_thinker;
     int process_id_connector;
-
     int flag_thinking;
-    
     int move_time;
-    
     field court[COURT_SIZE][COURT_SIZE];
-    
     int players_shm_ids;
-
 }game_state;
 
 #endif /* bashni_structs_h */

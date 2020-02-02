@@ -1,11 +1,3 @@
-//
-//  performConnection.h
-//  bashni
-//
-//  Created by Holzner on 16.11.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
-
 #ifndef performConnection_h
 #define performConnection_h
 
@@ -30,10 +22,7 @@
 //Enum for States of Client
 typedef enum { PROLOG, COURSE, DRAFT }phase;
 
-//Attributes for handle Methods
-
 extern int fd_pipe_thinker;
-
 
 //phase table function
 typedef phase phase_func_t( phase_data *data );

@@ -1,18 +1,9 @@
-//
-//  string_helper.h
-//  bashni
-//
-//  Created by Holzner on 01.12.16.
-//  Copyright © 2016 System-Praktikum. All rights reserved.
-//
-
 #ifndef string_helper_h
 #define string_helper_h
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 int split(char *string_to_split , char delimiter , char ***dest);
 

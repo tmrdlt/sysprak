@@ -1,24 +1,36 @@
-Konsolenaufrufe:
-
-----
-make
-----
-Erstellt ausführbare Datei "/bin/client".
-
+System-Praktikum WS 16/17
+-------------------------
+Client für den MNN Gameserver
 -----------------------------
-./bin/client -g 123gameid1234
------------------------------
-Führt das Programm aus, mit Game-Id als Kommandozeilenparameter
 
-----------------------------------------------------------
-make play GAMEID=123gameid1234 PLAYER=0
-make play GAMEID=123gameid1234 PLAYER=0 CONFIG=client.conf
-----------------------------------------------------------
-Wie im Meilenstein gefordert:
-Kompiliert das Projekt, setzt die Variablen GAMEID, PLAYER (und optional CONFIG)
-und führt es mit diesen als Kommandozeilenparameter aus.
+_Version: 1.0_
+_Berherschte Spiele: Bashni_
 
------------------------------------------------------------------------------
-valgrind --leak-check=full --trace-children=yes ./bin/client -g 123gameid1234
------------------------------------------------------------------------------
-Fehlersuche mit valgrind (valgrind muss installiert sein!)
+Dieser Client wurde im Wintersemeter 16/17 im Rahmen des System-Praktikums an der LMU von Gruppe 16 erstellt.
+Autoren waren:
+Elena Terzieva, Stephan Holzner und Timo Erdelt
+
+
+Nutzung
+-------
+
+    make play GAME_ID=<game_id> PLAYER=<player_number> CONFIG=<config_filename>
+          -> Wie im Meilenstein gefordert:
+             Kompiliert das Projekt und führt es direkt mit gesetzten Variablen GAME_ID, PLAYER und CONFIG aus.
+             und führt es mit diesen als Kommandozeilenparameter aus.
+             Bei nur make play wird die im Makefile gesetzte GAME_ID genommen.
+             >Note: PLAYER und CONFIG sind hierbei optional.
+
+    make
+          -> Erstellt ausführbare Datei "/bin/client"
+
+    ./bin/client -g <game_id> -p<player_number> -f<config_filename>
+          -> Führt das Programm aus.
+             >Note: game_id muss angegeben werden, der Rest ist optional
+
+    valgrind --leak-check=full --trace-children=yes ./bin/client -g <game_id>
+          -> Fehlersuche mit valgrind
+             >Note: valgrind muss hierfür installiert sein
+
+    make clean
+          -> Entfernt alle erstellten object und ausführbaren Dateien
